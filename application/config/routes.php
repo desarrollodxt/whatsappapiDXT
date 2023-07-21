@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
 | -------------------------------------------------------------------------
@@ -52,3 +52,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'welcome';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+
+// AJAX
+$route["/getCatalogosOgs"] = "ogs/index";
+$route["getCatRutasCliente/(:num)"] = "ogs/getCatRutasCliente/$1";
+
+$route["getCatalogosPorCliente/(:num)"] = "ogs/getCatalogosPorCliente/$1";
+
+$route["crearOrden"] = "ogs/crearOrden";
+
+
+
+$route["whatsapp/v1/recibirMensaje"] = "whatsapp/recibirMensaje";
