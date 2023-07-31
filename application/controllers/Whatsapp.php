@@ -25,6 +25,9 @@ class Whatsapp extends CI_Controller
 
     public function __construct()
     {
+        header("Access-Control-Allow-Origin: http://localhost:5173");
+        header("Access-Control-Allow-Methods: GET, POST");
+        header("Access-Control-Allow-Headers: Content-Type");
         parent::__construct();
         $this->load->model('Unidades_model');
         $this->load->model('Clientes_model');
@@ -49,31 +52,93 @@ class Whatsapp extends CI_Controller
     {
     }
 
-    public function enviarMensajeProveedorOgs()
+    public function enviarMensaje()
     {
-        $ruta_id = $this->body["ruta_id"];
-        $rutaInfo = $this->Rutas_model->getRutaCompare($ruta_id);
-        $proveedor = $this->Rutas_model->findProveedor($rutaInfo);
-        $proveedor_id = $proveedor[0]["id"];
-        $whatsappContact = $this->Proveedor_model->obtener_whatsappContact($proveedor_id);
-        $telefono = $whatsappContact[0]["telefono"];
-        $nombre_corto = $whatsappContact[0]["nombre_corto"];
-        $ruta = $rutaInfo[0]["ruta"];
-        $mensaje = "Hola, soy $nombre_corto, me interesa la ruta $ruta";
+        ob_clean();
+        $client = new \GuzzleHttp\Client();
 
 
 
-        $this->responder(false, "",  $mensaje);
+        $response = $client->request('POST', "http://localhost:3025/" . 'enviarMensaje', [
+            'headers' => [
+                'Content-Type' => 'application/json'
+            ],
+            'json' => [
+                'from' => $this->body["from"],
+                'content' => $this->body["mensaje"],
+                "file" => false
+            ]
+        ]);
+        $resJson = json_decode($response->getBody()->getContents(), true);
+        //{ estatus: "ok", messageId: "dsadsadsa2121" } respuesta esperada, obtener messageId
+        $newMessage = $this->Whatsapp_model->newMessage($this->body, $resJson["messageId"]);
+        $this->responder(false, "",  $newMessage);
     }
 
     public function recibirMensaje()
     {
-        $challenge = $this->input->get("hub_challenge");
+        ob_clean();
         $this->Whatsapp_model->salvarMensajeRecibido($this->body);
-        $array = [
-            "hub.challenge" => $challenge
-        ];
-        // $this->responder(false, "",  $array);
-        echo $challenge;
+        $array = [];
+        $this->responder(false, "",  $array);
+    }
+
+    public function getChats()
+    {
+        ob_clean();
+        $chats = $this->Whatsapp_model->getChats();
+        $this->responder(false, "",  $chats);
+    }
+
+    public function getMensajesPorChat($id)
+    {
+        ob_clean();
+        $id_chat = intval($id);
+        $mensajes = $this->Whatsapp_model->getMensajesPorChat($id_chat, 10, null);
+
+        $this->responder(false, "",  $mensajes);
+    }
+
+    public function enviarMensajeFile()
+    {
+        ob_clean();
+        $client = new \GuzzleHttp\Client();
+
+        //subir el archivo a esta ruta /domains/gcsmatrix.com/public_html/dxt/public/uploads
+        $file = $_FILES["file"];
+        $file_tmp = $file["tmp_name"];
+        $file_name = $file["name"];
+        $file_size = $file["size"];
+        $mimetype = $_POST["mimetype"];
+        $file_error = $file["error"];
+        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+        $file_name = uniqid() . "." . $file_ext;
+        $file_path = "/domains/gcsmatrix.com/public_html/dxt/public/uploads/" . $file_name;
+
+        if (!move_uploaded_file($file_tmp, $file_path)) {
+            $this->responder(true, "Error al subir el archivo", null, 400);
+        }
+
+        $response = $client->request('POST', "http://localhost:3025/" . 'enviarMensajeFile', [
+            'headers' => [
+                'Content-Type' => 'application/json'
+            ],
+            'json' => [
+                'from' => $this->body["from"],
+                'content' => $this->body["content"],
+                'fileName' => $file_name,
+                'file' => true,
+                'fileExtension' => $file_ext,
+                'url' => "https://gcsmatrix.com/dxt/public/uploads/",
+            ]
+        ]);
+
+        $resJson = json_decode($response->getBody()->getContents(), true);
+        //{ estatus: "ok", messageId: "dsadsadsa2121" } respuesta esperada, obtener messageId
+        $this->body["filename"] = $file_name;
+        $this->body["mimetype"] = $mimetype;
+        $newMessage = $this->Whatsapp_model->newMessage($this->body, $resJson["messageId"]);
+
+        $this->responder(false, "",  $newMessage);
     }
 }

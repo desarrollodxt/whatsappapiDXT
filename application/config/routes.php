@@ -55,13 +55,18 @@ $route['translate_uri_dashes'] = FALSE;
 
 
 // AJAX
-$route["/getCatalogosOgs"] = "ogs/index";
-$route["getCatRutasCliente/(:num)"] = "ogs/getCatRutasCliente/$1";
+$route["getCatalogosOgs"] = "ogs/index";
+$route["getCatRutasCliente/(:num)"] = "Ogs/getCatRutasCliente/$1";
 
-$route["getCatalogosPorCliente/(:num)"] = "ogs/getCatalogosPorCliente/$1";
+$route["getCatalogosPorCliente/(:num)"] = "Ogs/getCatalogosPorCliente/$1";
 
-$route["crearOrden"] = "ogs/crearOrden";
+$route["crearOrden"] = "Ogs/crearOrden";
 
 
+$route["whatsapp/getChats"] = "Whatsapp/getChats";
+$route["whatsapp/recibirMensaje"] = "Whatsapp/recibirMensaje";
+$route["whatsapp/getChatMessage/(:num)"] = "Whatsapp/getMensajesPorChat/$1";
 
-$route["whatsapp/v1/recibirMensaje"] = "whatsapp/recibirMensaje";
+$route["whatsapp/enviarMensaje"] = "Whatsapp/enviarMensaje";
+
+$route["whatsapp/enviarMensajeFile"] = "Whatsapp/enviarMensajeFile";
