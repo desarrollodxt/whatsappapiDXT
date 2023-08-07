@@ -41,14 +41,14 @@ class Ogs_model extends CI_Model
         return $this->db->insert_id();
     }
 
-    public function altaOrden($body, $especificacionesCarga)
+    public function altaOrden($body, $especificacionesCarga, $ruta)
     {
         $this->db->trans_begin();
         try {
 
             $dataToInsert = [
                 "cliente_id" => $body["cliente"],
-                "ruta" => $body["ruta"],
+                "ruta" => $ruta[0]["ruta_id"],
                 "fecha_carga" => $body["fechaCarga"],
                 "fecha_descarga" => $body["fechaDescarga"],
                 "referencia_cliente" => $body["referencia"],
@@ -60,6 +60,8 @@ class Ogs_model extends CI_Model
                 "tipo_unidad" => $body["tipoUnidad"],
                 "peso" => $body["peso"],
                 "tipo_peso" => $body["tipoUnidadPeso"],
+                "id_rainder_ogs" => $body["ogsID"],
+                "usuario_creo" => $body["usuarioID"]
             ];
 
             $this->db->insert($this->tabla, $dataToInsert);
@@ -77,7 +79,7 @@ class Ogs_model extends CI_Model
                 ->where("og.id", $id_ogs)->get();
 
             $ogs = $query->result_array();
-            // $this->db->trans_commit();
+            $this->db->trans_commit();
 
             $ogs = $ogs[0];
             $ogs["observaciones"] = unserialize($ogs["observaciones"]);
@@ -88,5 +90,15 @@ class Ogs_model extends CI_Model
             $this->db->trans_rollback();
             return false;
         }
+    }
+
+
+    public function addCarga($carga, $id_cliente)
+    {
+        $this->db->insert("tipos_cargas", [
+            "id_cliente" => $id_cliente,
+            "carga" => $carga
+        ]);
+        return $this->db->insert_id();
     }
 }

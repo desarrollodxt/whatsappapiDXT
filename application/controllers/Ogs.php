@@ -29,7 +29,7 @@ class Ogs extends CI_Controller
         $this->load->model('Clientes_model');
         $this->load->model("Rutas_model");
         $this->load->model("Proveedor_model");
-        $this->load->model("ogs_model");
+        $this->load->model("Ogs_model");
         $_body = file_get_contents('php://input');
         //validar que haya un body
         if (!$_body) {
@@ -47,12 +47,27 @@ class Ogs extends CI_Controller
         $catalogos = [];
         $unidades = $this->Unidades_model->obtener_cat_unidades();
         $clientes = $this->Clientes_model->cat_obtener_clientes();
+        $catOrigenesDestino = $this->Clientes_model->cat_obtener_origenes_destinos();
         $caracteristicasUnidades = $this->Unidades_model->obtener_caracteristicas_unidades();
         // Agregar el catálogo de unidades a la respuesta
         $catalogos["unidades"] = $unidades;
         $catalogos["clientes"] = $clientes;
+        $catalogos["origenesDestinos"] = $catOrigenesDestino;
         $catalogos["caracteristicasUnidades"] = $caracteristicasUnidades;
         $this->responder(false, "",  $catalogos);
+    }
+    public function addCarga()
+    {
+        $body = $this->body;
+        $carga = $body["carga"];
+        $id_cliente = intval($body["id_cliente"]);
+        $carga_id = $this->Ogs_model->addCarga($carga, $id_cliente);
+
+        $cargaNueva = [
+            "id" => $carga_id,
+            "text" => $carga
+        ];
+        $this->responder(false, "",   $cargaNueva);
     }
 
     public function getCatRutasCliente($id)
@@ -68,11 +83,9 @@ class Ogs extends CI_Controller
     {
         $id_cliente = intval($id);
 
-        $rutas = $this->Rutas_model->cat_obtener_rutas_cliente($id_cliente);
         $cargas = $this->Clientes_model->cat_obtener_cargas_cliente($id_cliente);
         $especificacionesCarga = ["IMSS", "Caja fumigada"];
         $response = [];
-        $response["rutas"] = $rutas;
         $response["cargas"] = $cargas;
         $response["especificacionesCarga"] = $this->Clientes_model->cat_obtener_especificaciones_carga($id_cliente);
         $this->responder(false, "",  $response);
@@ -82,64 +95,79 @@ class Ogs extends CI_Controller
     {
         $body = $this->body;
 
-        $ruta = $body["ruta"];
+        $origen = $body["origen"];
+        $destino = $body["destino"];
+
         $id_cliente = intval($body["cliente"]);
 
-        $rutaInfo = $this->Rutas_model->getRutaCompare($ruta);
-        $proveedor = $this->Rutas_model->findProveedor($rutaInfo);
-        $especificacionesCarga = $this->ogs_model->getEspecificacionesCarga($body["especificacionesCarga"], $id_cliente);
+        $ruta = $this->Rutas_model->obtener_ruta_cliente($origen, $destino, $id_cliente);
+        if (empty($ruta)) {
+            $this->responder(true, "No se pudo generar la ruta", null, 400);
+        }
 
-        $ogs = $this->ogs_model->altaOrden($body, $especificacionesCarga);
+        $proveedores = $this->Rutas_model->findProveedor($ruta[0]);
 
 
-        $whatsappNum = $this->Proveedor_model->obtener_whatsappContact($proveedor[0]["id"]);
-        if (empty($whatsappNum)) {
-            // $this->responder(true, "No se encontró un número de whatsapp para el proveedor", null, 400);
+        $especificacionesCarga = $this->Ogs_model->getEspecificacionesCarga($body["especificacionesCarga"], $id_cliente);
+        $ogs = $this->Ogs_model->altaOrden($body, $especificacionesCarga, $ruta);
+
+        if (!$ogs) {
+            $this->responder(true, "No se pudo generar la orden", null, 400);
+        }
+
+        if (empty($proveedores)) {
+            $this->responder(false, "No se encontró un proveedor para esta ruta, Pero se genero la orden con éxito.", null, 200);
+        }
+
+        $ProvedoresQueNoSePudieronAvisar = [];
+
+        foreach ($proveedores as $proveedor) {
+            if ($proveedor["from_"] == null) {
+                $ProvedoresQueNoSePudieronAvisar[] = $proveedor;
+                continue;
+            }
+            $mensaje = "Ocupamos " . $ogs["unidad"]  . " " . $ogs["caracteristica"] . " ";
+            $mensaje .= $ruta[0]["origen"] . " a " . $ruta[0]["destino"] . " \n";
+            $mensaje .= "Carga: " . $ogs["fecha_carga"] . "\n";
+            $mensaje .= "Descarga: " . $ogs["fecha_descarga"] . "\n";
+            $mensaje .= "Carga: " . $ogs["carga"] . " peso " . $ogs["peso"] . " " . $ogs["tipo_peso"] .  "\n";
+            $mensaje .= "Adicionales:\n";
+
+            foreach ($especificacionesCarga as $value) {
+                $mensaje .= " - $value \n";
+            }
+            $mensaje .= "Favor de confirmar dispo";
+
+            $this->sendMessage($proveedor["from_"], $mensaje);
+        }
+
+        if (empty($ProvedoresQueNoSePudieronAvisar)) {
+            $this->responder(false, "La orden se ha generado con éxito", []);
         } else {
-            $whatsappNum = $whatsappNum[0]["telefono"];
-        }
+            $mensajeAlerta =  "La orden se ha generado con éxito, pero no se pudo avisar a los siguientes proveedores por que no tiene asignado un grupo de whatsapp: ";
+            $proveedoresLista = implode(",", array_column($ProvedoresQueNoSePudieronAvisar, "nombre_corto"));
 
+            $ms = "No se pudo alertar estos proveedores: " . $proveedoresLista . ". para esta ruta " . $ruta[0]["origen"] . " a " . $ruta[0]["destino"] . " Debes dar de alta un grupo de whatsapp con el proveedor y asignarlo en la sección de proveedores.";
+
+            $this->sendMessage("120363025084570901@g.us", $ms);
+            $this->responder(false,  $mensajeAlerta .  $proveedoresLista, []);
+        }
+    }
+
+
+    private function sendMessage($from, $mensaje)
+    {
         $client = new \GuzzleHttp\Client();
-
-        $mensaje = "Hola, buen día " . $proveedor[0]["nombre_corto"] . "! \n\n";
-        $mensaje .= "Tenemos una nueva solicitud de flete. \n\n";
-        $mensaje .= "Origen: " . $ogs["origen"] . "\n";
-        $mensaje .= "Destino: " . $ogs["destino"] . " \n";
-        $mensaje .= "Fecha de carga: " . $ogs["fecha_carga"] . "\n";
-        $mensaje .= "Fecha de descarga: " . $ogs["fecha_descarga"] . "\n";
-        $mensaje .= "Tipo de unidad: " . $ogs["unidad"] . " " . $ogs["caracteristica"] . "\n";
-        $mensaje .= "Carga: " . $ogs["peso"] . " " . $ogs["tipo_peso"] . " de " . $ogs["carga"] .   " \n";
-        $mensaje .= "El flete tiene los siguientes requisitos:\n";
-
-        foreach ($especificacionesCarga as $value) {
-            $mensaje .= " - $value \n";
-        }
-
-        $mensaje .= "Sí te interesa este flete y tienes disponibilidad responde: \"tengo disponibilidad\",\n si no mueves esta ruta o no tienes este tipo de unidad responde: \"no me interesan estos viajes\" \nDe otra forma solo ignora este mensaje.\n";
-        $mensaje .= "¡Gracias!";
-
-        // $ruta_id = $this->body["ruta_id"];
-        // $rutaInfo = $this->Rutas_model->getRutaCompare($ruta_id);
-        // $proveedor = $this->Rutas_model->findProveedor($rutaInfo);
-        // $proveedor_id = $proveedor[0]["id"];
-        // $whatsappContact = $this->Proveedor_model->obtener_whatsappContact($proveedor_id);
-        // $telefono = $whatsappContact[0]["telefono"];
-        // $nombre_corto = $whatsappContact[0]["nombre_corto"];
-        // $ruta = $rutaInfo[0]["ruta"];
-        // $mensaje = "Hola, soy $nombre_corto, me interesa la ruta $ruta";
-        // $this->responder(false, "",  $mensaje);
-
-        $response = $client->request('POST', "http://localhost/dxt/api/" . 'whatsapp/enviarMensaje', [
+        $response = $client->request('POST', "https://gcsmatrix.com/dxt/api/" . 'whatsapp/enviarMensaje', [
             'headers' => [
                 'Content-Type' => 'application/json'
             ],
             'json' => [
-                'id_chat' => 70,
+                'id_chat' => false,
+                "from" => $from,
                 'mensaje' => $mensaje
             ]
         ]);
-
-
-        $this->responder(false, "", $ogs);
+        return $response;
     }
 }

@@ -49,8 +49,6 @@
                 $chat_a_responder =  $this->getMessageByWpId($body["id_respuesta"]);
                 $newMessage["id_respondido"] = $chat_a_responder->id;
             }
-
-
             $this->db->insert("whatsapp_messages", $newMessage);
 
             $this->db->trans_commit();
@@ -102,7 +100,17 @@
 
         public function newMessage($body, $messageId)
         {
-            $chat_id = $body["id_chat"];
+            $chat_id = null;
+            if (!$body["id_chat"]) {
+                $queryChat = $this->db->from("chats_whatsapp")->where("from", $body["from"])->get();
+                $chat = $queryChat->row();
+                if (empty($chat)) {
+                    $this->db->insert("chats_whatsapp", ["from" => $body["from"]]);
+                    $chat_id = $this->db->insert_id();
+                } else {
+                    $chat_id = $chat->id;
+                }
+            }
             $from = $body["from"];
             $mensaje = $body["mensaje"];
 

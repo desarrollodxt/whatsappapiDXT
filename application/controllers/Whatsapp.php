@@ -54,12 +54,12 @@ class Whatsapp extends CI_Controller
 
     public function enviarMensaje()
     {
+
         ob_clean();
         $client = new \GuzzleHttp\Client();
 
 
-
-        $response = $client->request('POST', "http://localhost:3025/" . 'enviarMensaje', [
+        $response = $client->request('POST', "https://develop.focusmedia-agency.com/apidxt/enviarMensaje", [
             'headers' => [
                 'Content-Type' => 'application/json'
             ],

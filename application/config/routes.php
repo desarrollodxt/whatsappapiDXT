@@ -57,16 +57,25 @@ $route['translate_uri_dashes'] = FALSE;
 // AJAX
 $route["getCatalogosOgs"] = "ogs/index";
 $route["getCatRutasCliente/(:num)"] = "Ogs/getCatRutasCliente/$1";
-
 $route["getCatalogosPorCliente/(:num)"] = "Ogs/getCatalogosPorCliente/$1";
-
 $route["crearOrden"] = "Ogs/crearOrden";
+$route["agregarCarga"] = "Ogs/addCarga";
 
+$route["getRolesYPermisos"] = "Roles/getRolesYPermisos";
+$route["crearRol"] = "Roles/CrearRol";
+$route["actualizarPermisos"] = "Roles/actualizarPermisos";
+$route["getCatalogosProveedor/(:num)"] = "Proveedor/getCatalogosProveedor/$1";
+
+$route["actualizarPermisos"] = "Roles/actualizarPermisos";
+$route["altaContactosProveedor"] = "Proveedor/altaContactosProveedor";
+$route["getProveedores"] = "Proveedor/getProveedores";
+$route["getUsuariosProveedores"] = "Proveedor/getUsuariosProveedores";
+$route["getInfoProveedor/(:num)"] = "Proveedor/getInfoProveedor/$1";
+
+$route["altaGrupoContacto"] = "Proveedor/altaGrupoContacto";
 
 $route["whatsapp/getChats"] = "Whatsapp/getChats";
 $route["whatsapp/recibirMensaje"] = "Whatsapp/recibirMensaje";
 $route["whatsapp/getChatMessage/(:num)"] = "Whatsapp/getMensajesPorChat/$1";
-
 $route["whatsapp/enviarMensaje"] = "Whatsapp/enviarMensaje";
-
 $route["whatsapp/enviarMensajeFile"] = "Whatsapp/enviarMensajeFile";
