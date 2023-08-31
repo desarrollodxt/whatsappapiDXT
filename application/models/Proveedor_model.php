@@ -248,6 +248,17 @@ class Proveedor_model extends CI_Model
         );
         return true;
     }
+
+
+    public function get_grupos_whatsapp()
+    {
+        $query = $this->db->query("SELECT from_ from grupos_whatsapp where from_ not in (SELECT DISTINCT(trim(`from`)) FROM `whatsapp_messages` where content like '%Cd Juárez / Con Reparto en Chihuahua, Chihuahua.%')");
+        $this->db->select("from_")->from("grupos_whatsapp")->get();
+
+        return $query->result_array();
+    }
+
+
     public function obtener_rutas_proveedor($proveedorId)
     {
         //formato de ruta que debemos devolver

@@ -11,6 +11,9 @@ class Ogs_model extends CI_Model
 
     public function getEspecificacionesCarga(array $especificacionesCarga, int $id_cliente)
     {
+        if (empty($especificacionesCarga)) {
+            return [];
+        }
         foreach ($especificacionesCarga as $ix => $value) {
 
             if (!is_numeric($value)) {

@@ -79,3 +79,4 @@ $route["whatsapp/recibirMensaje"] = "Whatsapp/recibirMensaje";
 $route["whatsapp/getChatMessage/(:num)"] = "Whatsapp/getMensajesPorChat/$1";
 $route["whatsapp/enviarMensaje"] = "Whatsapp/enviarMensaje";
 $route["whatsapp/enviarMensajeFile"] = "Whatsapp/enviarMensajeFile";
+$route["enviarMasivo"] = "Proveedor/enviarMasivo";

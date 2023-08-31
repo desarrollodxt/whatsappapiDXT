@@ -129,4 +129,35 @@ class Proveedor extends CI_Controller
 
         $this->responder(false, "",  $data);
     }
+
+
+    public function enviarMasivo()
+    {
+        $string = "Buen día!☀️ \n Viaje disponible 🚛\n Carga: Hoy 11 de Agosto 13 hrs \n Origen: Guadalupe N.L\n Destino: Cd Juárez / Con Reparto en Chihuahua, Chihuahua.📍\n Carga: Refacciones / 20 Tns\n $ a negociar\nBonito dia!!🤗";
+
+        $grupos = $this->Proveedor_model->get_grupos_whatsapp();
+        foreach ($grupos as $grupo) {
+            $this->sendMessage($grupo["from_"], $string);
+        }
+
+        $this->sendMessage("120363025084570901@g.us", $string);
+        $this->responder(false, "",  $string);
+    }
+
+
+    private function sendMessage($from, $mensaje)
+    {
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request('POST', "https://gcsmatrix.com/dxt/api/" . 'whatsapp/enviarMensaje', [
+            'headers' => [
+                'Content-Type' => 'application/json'
+            ],
+            'json' => [
+                'id_chat' => false,
+                "from" => $from,
+                'mensaje' => $mensaje
+            ]
+        ]);
+        return $response;
+    }
 }
