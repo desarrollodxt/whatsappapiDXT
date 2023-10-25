@@ -84,7 +84,6 @@ class Proveedor_model extends CI_Model
     {
         $this->db->select("p.id, p.nombre_corto text");
         $this->db->from("proveedores as p");
-        $this->db->where("ultimo_planer", $usuario_id);
         $query = $this->db->get();
         return $query->result_array();
     }
@@ -236,6 +235,7 @@ class Proveedor_model extends CI_Model
         return $query->result_array();
     }
 
+
     public function altaGrupoContacto($grupo)
     {
 
@@ -252,10 +252,10 @@ class Proveedor_model extends CI_Model
 
     public function get_grupos_whatsapp()
     {
-        $query = $this->db->query("SELECT from_ from grupos_whatsapp where from_ not in (SELECT DISTINCT(trim(`from`)) FROM `whatsapp_messages` where content like '%Cd Juárez / Con Reparto en Chihuahua, Chihuahua.%')");
-        $this->db->select("from_")->from("grupos_whatsapp")->get();
 
-        return $query->result_array();
+        $query = "SELECT gw.id id_grupo,p.id id_proveedor, gw.from_, gw.nombre_grupo, p.nombre_corto FROM grupos_whatsapp gw inner join proveedores p on p.id = gw.id_proveedor";
+        $grupos = $this->db->query($query)->result_array();
+        return $grupos;
     }
 
 

@@ -78,6 +78,33 @@
             return $query->result_array();
         }
 
+        public function program_message_proveedor($grupo, $fecha_envio, $mensaje)
+        {
+            $dataToInsert = [
+                "from_" => $grupo["from_"],
+                "mensaje" => $mensaje,
+                "fecha_envio_programado" => $fecha_envio,
+                "isSent" => 0,
+                "fecha_creacion" => date("Y-m-d H:i:s"),
+                "proveedor" => $grupo["nombre_corto"],
+                "id_proveedor" => $grupo["id_proveedor"],
+                "grupo_nombre" => $grupo["nombre_grupo"],
+            ];
+
+            $this->db->insert("whatsapp_mensajes_chunk", $dataToInsert);
+        }
+
+        public function getMensajeProgramado($limit = 20)
+        {
+            $query = $this->db->from("whatsapp_mensajes_chunk")->where("isSent", 0)->order_by("fecha_envio_programado", "asc")->limit($limit)->get();
+            return $query->result_array();
+        }
+
+        public function updateMensajeProgramado($id)
+        {
+            $this->db->update("whatsapp_mensajes_chunk", ["isSent" => 1], ["id" => $id]);
+        }
+
         public function getChat($chat_id)
         {
             $select = "*";

@@ -32,16 +32,24 @@ class Rutas_model extends CI_Model
         return $query->result();
     }
 
-    public function obtener_ruta_cliente($origen, $destino, $id_cliente)
+    public function obtener_ruta_cliente($origen, $destino, $id_cliente, $id_lead = 0)
     {
+        $id_lead_where = $id_lead == 0 ? "id_cliente = ?" : "id_lead = ?";
+        $id_lead = intval($id_lead);
         $sql = "SELECT r.id ruta_id, rc.id_cliente, origenDetalle.nombre origen, origenDetalle.id_estado estado_origen, origen.ciudad, destinoDetalle.nombre destino, destino.ciudad, destinoDetalle.id_estado estado_destino  FROM rutas_clientes rc
         INNER JOIN rutas r ON r.id = rc.id_ruta 
         INNER JOIN direcciones origen ON origen.id = r.origen 
         INNER JOIN (SELECT DISTINCT  cn.id_nombre, c.id_estado, cn.nombre  FROM cps_nombres cn INNER JOIN cps c ON c.id_nombre = cn.id_nombre) AS origenDetalle ON origenDetalle.id_nombre = origen.ciudad
         INNER JOIN direcciones destino ON destino.id = r.destino 
         INNER JOIN (SELECT DISTINCT  cn.id_nombre, c.id_estado, cn.nombre  FROM cps_nombres cn INNER JOIN cps c ON c.id_nombre = cn.id_nombre) AS destinoDetalle ON destinoDetalle.id_nombre = destino.ciudad
-        where id_cliente = ? AND origen.ciudad = ? AND destino.ciudad = ?;";
-        $query = $this->db->query($sql, array($id_cliente, $origen, $destino));
+        where $id_lead_where AND origen.ciudad = ? AND destino.ciudad = ?;";
+        $query = null;
+        if ($id_lead == 0) {
+            $query = $this->db->query($sql, array($id_cliente, $origen, $destino));
+        } else {
+            $query = $this->db->query($sql, array($id_lead, $origen, $destino));
+        }
+
 
         $result = $query->result_array();
 
@@ -54,7 +62,11 @@ class Rutas_model extends CI_Model
                 $this->db->insert("direcciones", ["ciudad" => $destino]);
                 $destino_id = $this->db->insert_id();
                 $this->db->insert("rutas", ["origen" => $origen_id, "destino" => $destino_id]);
-                $this->db->insert("rutas_clientes", ["id_cliente" => $id_cliente, "id_ruta" => $this->db->insert_id()]);
+                if ($id_lead == 0) {
+                    $this->db->insert("rutas_clientes", ["id_ruta" => $this->db->insert_id(), "id_cliente" => $id_cliente]);
+                } else {
+                    $this->db->insert("rutas_clientes", ["id_ruta" => $this->db->insert_id(), "id_lead" => $id_lead]);
+                }
                 $this->db->trans_commit();
             } catch (\Throwable $th) {
                 $this->db->trans_rollback();
@@ -63,7 +75,22 @@ class Rutas_model extends CI_Model
             return $result;
         }
 
-        $query = $this->db->query($sql, array($id_cliente, $origen, $destino));
+        $id_lead_where = $id_lead == 0 ? "id_cliente = ?" : "id_lead = ?";
+        $id_lead = intval($id_lead);
+        $sql = "SELECT r.id ruta_id, rc.id_cliente, origenDetalle.nombre origen, origenDetalle.id_estado estado_origen, origen.ciudad, destinoDetalle.nombre destino, destino.ciudad, destinoDetalle.id_estado estado_destino  FROM rutas_clientes rc
+        INNER JOIN rutas r ON r.id = rc.id_ruta 
+        INNER JOIN direcciones origen ON origen.id = r.origen 
+        INNER JOIN (SELECT DISTINCT  cn.id_nombre, c.id_estado, cn.nombre  FROM cps_nombres cn INNER JOIN cps c ON c.id_nombre = cn.id_nombre) AS origenDetalle ON origenDetalle.id_nombre = origen.ciudad
+        INNER JOIN direcciones destino ON destino.id = r.destino 
+        INNER JOIN (SELECT DISTINCT  cn.id_nombre, c.id_estado, cn.nombre  FROM cps_nombres cn INNER JOIN cps c ON c.id_nombre = cn.id_nombre) AS destinoDetalle ON destinoDetalle.id_nombre = destino.ciudad
+        where $id_lead_where AND origen.ciudad = ? AND destino.ciudad = ?;";
+        $query = null;
+        if ($id_lead == 0) {
+            $query = $this->db->query($sql, array($id_cliente, $origen, $destino));
+        } else {
+            $query = $this->db->query($sql, array($id_lead, $origen, $destino));
+        }
+
         $result = $query->result_array();
 
         return $result;

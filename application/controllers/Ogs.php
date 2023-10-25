@@ -70,6 +70,20 @@ class Ogs extends CI_Controller
         $this->responder(false, "",   $cargaNueva);
     }
 
+    public function addCargaLead()
+    {
+        $body = $this->body;
+        $carga = $body["carga"];
+        $id_lead = intval($body["id_lead"]);
+        $carga_id = $this->Ogs_model->addCargaLead($carga, $id_lead);
+
+        $cargaNueva = [
+            "id" => $carga_id,
+            "text" => $carga
+        ];
+        $this->responder(false, "",   $cargaNueva);
+    }
+
     public function getCatRutasCliente($id)
     {
 

@@ -104,4 +104,13 @@ class Ogs_model extends CI_Model
         ]);
         return $this->db->insert_id();
     }
+
+    public function addCargaLead($carga, $id_lead)
+    {
+        $this->db->insert("tipos_cargas", [
+            "id_lead" => $id_lead,
+            "carga" => $carga
+        ]);
+        return $this->db->insert_id();
+    }
 }

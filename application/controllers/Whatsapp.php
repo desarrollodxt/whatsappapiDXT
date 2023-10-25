@@ -52,6 +52,58 @@ class Whatsapp extends CI_Controller
     {
     }
 
+    function programarMensaje($grupo)
+    {
+        ob_clean();
+        if ($grupo != 'proveedores') {
+            $this->responder(true, "Error en la peticion", null, 400);
+        }
+        ob_end_clean();
+
+        $grupos = $this->Proveedor_model->get_grupos_whatsapp();
+
+        $mensaje = base64_encode($this->body["mensaje"]);
+        $fecha_envio = $this->body["fecha_hora_envio"];
+
+        foreach ($grupos as $value) {
+            $this->Whatsapp_model->program_message_proveedor($value, $fecha_envio, $mensaje);
+        }
+
+        $this->responder(false, "", $mensaje, 200);
+    }
+
+    public function enviarMensajeProgramado()
+    {
+        $mensajeProgramado = $this->Whatsapp_model->getMensajeProgramado(20);
+        foreach ($mensajeProgramado as $i => $mensaje) {
+            $mensajeProgramado[$i] = base64_decode($mensaje["mensaje"]);
+            $res =  $this->sendMessage($mensaje["from_"], $mensajeProgramado[$i]);
+
+            if ($res) {
+                $this->Whatsapp_model->updateMensajeProgramado($mensaje["id"]);
+            }
+        }
+
+        // $this->sendMessage("5218124485945@c.us", base64_decode($mensajeProgramado[0]["mensaje"]));
+        ob_end_clean();
+        $this->responder(false, "", [], 200);
+    }
+
+    private function sendMessage($from, $mensaje)
+    {
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request('POST', "https://gcsmatrix.com/dxt/api/" . 'whatsapp/enviarMensaje', [
+            'headers' => [
+                'Content-Type' => 'application/json'
+            ],
+            'json' => [
+                'id_chat' => false,
+                "from" => $from,
+                'mensaje' => $mensaje
+            ]
+        ]);
+        return $response;
+    }
     public function enviarMensaje()
     {
 
