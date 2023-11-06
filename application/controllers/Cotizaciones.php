@@ -26,6 +26,7 @@ class Cotizaciones extends CI_Controller
     {
         parent::__construct();
         $this->load->model('Cotizacion_model');
+        $this->load->model("Usuario_model");
         $_body = file_get_contents('php://input');
         //validar que haya un body
         if (!$_body) {
@@ -146,6 +147,7 @@ class Cotizaciones extends CI_Controller
             $this->responder(true, "No puedes generar una cotización con una ruta sin precio de venta", null, 400);
         }
 
+        $usuarioInfo = $this->Usuario_model->getUsuario($usuario);
         // dd($cotizacion);
         $cotizacionD = $CotizacionesInfo[0]["lead_id"];
         require_once(__DIR__ . '/../third_party/fpdf-easytable-master/easyTable.php');
@@ -211,9 +213,9 @@ class Cotizaciones extends CI_Controller
         $this->generatepdf_library->ln();
         $this->generatepdf_library->ln();
         //texto alineado al centro de la hoja$this->generatepdf_library->Cell(90, 7, utf8_decode($cotizacionD["nombre_completo"]));
-        $this->generatepdf_library->Cell(0, 7, utf8_decode("Luis Daniel Mendoza Rodríguez"), 0, 0);
+        $this->generatepdf_library->Cell(0, 7, utf8_decode($usuarioInfo["nombre_completo"]), 0, 0);
         $this->generatepdf_library->ln();
-        $this->generatepdf_library->Cell(0, 7, utf8_decode("Agente de ventas"), 0, 0);
+        $this->generatepdf_library->Cell(0, 7, utf8_decode($usuarioInfo["puesto"]), 0, 0);
 
 
 
