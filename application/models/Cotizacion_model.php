@@ -127,4 +127,25 @@ class Cotizacion_model extends CI_Model
         return $this->db->from("cotizaciones_ln cl")
             ->where_in("cl.id", $cotizaciones)->get()->result_array();
     }
+
+    public function getCotizacionesForLead($cliente)
+    {
+        $sql = "SELECT cl.*, u.nombre FROM cotizaciones_ln cl INNER JOIN usuarios u on u.id = cl.usuario_solicita where cl.lead_id = $cliente ORDER BY cl.fecha_creacion DESC";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    public function getCostosForLead($cliente)
+    {
+        $sql = "SELECT cln.id, cln.costo, cln.usuario,  DATE_FORMAT(CONVERT_TZ(cln.fecha_creacion, '+00:00','-06:00'),'%Y-%m-%d') fecha_creacion, cln.id_cotizacion, cln.id_cotizacion_ruta, cln.proveedor, cln.lead_id, u.nombre FROM cotizaciones_ln ln inner join costos_cotizacion_ln cln on ln.id = cln.id_cotizacion_ruta INNER JOIN usuarios u on u.id = cln.usuario  WHERE ln.lead_id=$cliente";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    public function getCotizacionAnterior($cliente)
+    {
+        $sql = "SELECT * FROM cotizaciones_ln cl where lead_id = $cliente order by fecha_creacion DESC limit 1";
+        $query = $this->db->query($sql);
+        return $query->row_array();
+    }
 }

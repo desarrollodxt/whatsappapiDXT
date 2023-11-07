@@ -13,7 +13,7 @@ class Generatepdf_library extends exFPDF
 
     function FancyBullet($text)
     {
-        $this->Image('/home/u613393165/domains/gcsmatrix.com/public_html/dxt/vista/img/bullet-circle.png', 22, $this->GetY() + 1.4, 1.4, 1.4);
+        $this->Image($_SERVER["IMG_FOLDER"] . 'bullet-circle.png', 22, $this->GetY() + 1.4, 1.4, 1.4);
         $this->Cell(5);
         $this->MultiCell(0, 4, utf8_decode($text));
     }
@@ -22,7 +22,7 @@ class Generatepdf_library extends exFPDF
     {
 
         // Logo
-        $this->Image("/home/u613393165/domains/gcsmatrix.com/public_html/dxt/vista/img/logo.jpg", 8, 8, 30);
+        $this->Image($_SERVER["IMG_FOLDER"] . "logo.jpg", 8, 8, 30);
         $this->SetFont('Arial', '', 10);
         $this->setY(5);
         $this->setX(200);

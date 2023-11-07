@@ -224,7 +224,7 @@ class Cotizaciones extends CI_Controller
         $fecha = new DateTime('now');
         $nombreFile = 'Cotizacionz_' . $fecha->format('Y-m-d_H-i-s') . '.pdf';
 
-        $res = $this->generatepdf_library->Output('F', '/home/u613393165/domains/gcsmatrix.com/public_html/dxt/vista/fotos/' . $nombreFile);
+        $res = $this->generatepdf_library->Output('F', $_SERVER["FOTOS_FOLDER"] . $nombreFile);
         $this->load->model("Comentario_model");
         $this->Comentario_model->guardarComentarioCotizacion($nombreFile, $destinatario, $cotizacionD, $usuario);
         $this->responder(false, "Cotizacion generada", $res, 200);

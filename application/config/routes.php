@@ -48,6 +48,8 @@ $route["getComentarios"] = "CRM/getComentarios";
 $route["getInformacionGeneral"] = "CRM/getInformacionGeneral";
 $route["actualizarLead"] = "CRM/actualizarLead";
 $route["sendComentario"] = "CRM/sendComentario";
+$route["getCotizacionesLead"] = "CRM/getCotizacionesLead";
+$route["getCotizacionAnterior/(:any)"] = "CRM/getCotizacionAnterior/$1";
 // AJAX
 
 // api
