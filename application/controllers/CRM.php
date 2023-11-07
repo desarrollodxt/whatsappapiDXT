@@ -148,6 +148,23 @@ class CRM extends CI_Controller
         $this->responder(false, "", $data);
     }
 
+    public function getCotizacionesLead()
+    {
+        if (!isset($_GET["lead"])) {
+            $this->responder(true, "Debes enviar el id del lead", null, 400);
+        }
+
+        $this->load->model('Cotizacion_model');
+        $cotizaciones = $this->Cotizacion_model->getCotizacionesForLead($_GET["lead"]);
+        $costos = $this->Cotizacion_model->getCostosForLead($_GET["lead"]);
+        $lead = $this->Lead_model->getLead($_GET["lead"]);
+        $data = [
+            "cotizaciones" => $cotizaciones,
+            "costos" => $costos,
+            "lead" =>  $lead
+        ];
+        $this->responder(false, "", $data, 200);
+    }
 
     private function carga_achivo($campo, $carpeta, $permitidos = '')
     {
@@ -242,5 +259,13 @@ class CRM extends CI_Controller
         } else {
             return false;
         }
+    }
+
+    public function getCotizacionAnterior($lead)
+    {
+        $this->load->model('Cotizacion_model');
+        $cotizacion = $this->Cotizacion_model->getCotizacionAnterior($lead);
+
+        $this->responder(false, "", $cotizacion, 200);
     }
 }
