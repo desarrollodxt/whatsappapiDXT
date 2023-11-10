@@ -10,22 +10,51 @@ class Lead_model extends CI_Model
         $this->load->database();
     }
 
-    public function getLeads($usuario, $roles, $all = false)
+    public function getLeads($usuario, $roles, $tipo_entidad = 1)
     {
-        $this->db->from($this->tabla . ' l');
-        $this->db->join("usuarios u", "u.id = l.dueno");
-        $this->db->select("l.id lead_id, l.nombre, DATE_FORMAT(l.fecha_modificacion_lead, '%Y-%m-%d') fecha_modificacion, l.nombre, c.comentario, u.nombre vendedor, l.fase, l.estimacion");
-        $this->db->join("(select max(id) lascomment, id_lead from comentarios c where id_lead is not null group by id_lead) as lc", "l.id = lc.id_lead", "left");
+        $this->db->from('entidades e');
+
+        if ($tipo_entidad == 1) {
+            $this->db->join("usuarios u", "u.id = e.id_vendedor", "left");
+        } else if ($tipo_entidad == 2) {
+            $this->db->join("usuarios u", "u.id = e.id_comprador", "left");
+        }
+
+        $this->db->select("e.tipo_entidad, e.id lead_id,e.id_vendedor, e.id_comprador, e.nombre, DATE_FORMAT(e.fecha_modificacion, '%Y-%m-%d') fecha_modificacion, e.nombre, c.comentario, u.nombre usuarioAsignado, e.fase, e.estimacion");
+        $this->db->join("(select max(id) lascomment, id_entidad from comentarios c where id_entidad is not null group by id_entidad) as lc", "e.id = lc.id_entidad", "left");
         $this->db->join("comentarios c", "c.id = lc.lascomment", "left");
-        $this->db->where_not_in('l.fase', ['DESCARTADO']);
-        if (validarRol($roles, ['Admin', 'Jefe comercial'])) {
-            $this->db->where("dueno <>", "0")
-                ->order_by("fecha_modificacion_lead", "DESC");
+
+        if (validarRol($roles, ['Admin', 'Direccion'])) {
+            $this->db->where("e.tipo_entidad", $tipo_entidad);
+            $this->db->order_by("e.fecha_modificacion", "DESC");
+            $query = $this->db->get();
+            return $query->result_array();
+        } else if (validarRol($roles, ['Jefe comercial'])) {
+            if ($tipo_entidad != 1) {
+                return [];
+            }
+            $this->db->where("e.tipo_entidad", $tipo_entidad)
+                ->order_by("e.fecha_modificacion", "DESC");
+            $query = $this->db->get();
+            return $query->result_array();
+        } else if (validarRol($roles, ['Jefe operaciones'])) {
+            if ($tipo_entidad != 2) {
+                return [];
+            }
+            $this->db->where("e.tipo_entidad", $tipo_entidad)
+                ->order_by("e.fecha_modificacion", "DESC");
+            $query = $this->db->get();
+            return $query->result_array();
+        } else if (validarRol($roles, ['Compras'])) {
+            $this->db->where("e.tipo_entidad", $tipo_entidad);
+            $this->db->where("u.id", $usuario)
+                ->order_by("e.fecha_modificacion", "DESC");
             $query = $this->db->get();
             return $query->result_array();
         } elseif (validarRol($roles, ['Vendedor', 'comercial'])) {
-            $this->db->where("dueno", $usuario)
-                ->order_by("fecha_modificacion_lead", "DESC");
+            $this->db->where("e.tipo_entidad", $tipo_entidad);
+            $this->db->where("u.id", $usuario)
+                ->order_by("e.fecha_modificacion", "DESC");
             $query = $this->db->get();
             return $query->result_array();
         }
@@ -33,12 +62,14 @@ class Lead_model extends CI_Model
 
     public function getLead($lead_id)
     {
-        $this->db->from($this->tabla . ' l');
-        $this->db->join("usuarios u", "u.id = l.dueno");
-        $this->db->select("l.*, c.comentario, u.nombre vendedor");
-        $this->db->join("(select max(id) lascomment, id_lead from comentarios c where id_lead is not null group by id_lead) as lc", "l.id = lc.id_lead", "left");
+        $this->db->from('entidades e');
+        $this->db->join("usuarios u", "u.id = e.id_vendedor", "left");
+        $this->db->join("usuarios com", "com.id = e.id_comprador", "left");
+
+        $this->db->select("e.*, c.comentario, u.nombre vendedor, com.nombre comprador");
+        $this->db->join("(select max(id) lascomment, id_entidad from comentarios c where id_entidad is not null group by id_entidad) as lc", "e.id = lc.id_entidad", "left");
         $this->db->join("comentarios c", "c.id = lc.lascomment", "left");
-        $this->db->where("l.id", $lead_id);
+        $this->db->where("e.id", $lead_id);
         $query = $this->db->get();
         return $query->row_array();
     }
@@ -46,7 +77,7 @@ class Lead_model extends CI_Model
     public function cambiarFase($fase, $id_lead)
     {
         $this->db->where("id", $id_lead);
-        $this->db->update($this->tabla, ["fase" => $fase, "fecha_modificacion_lead" => date("Y-m-d H:i:s")]);
+        $this->db->update("entidades", ["fase" => $fase, "fecha_modificacion" => date("Y-m-d H:i:s")]);
     }
 
     public function crearOrUpdateLead($lead)
@@ -54,13 +85,13 @@ class Lead_model extends CI_Model
         $id = null;
         //if not exists
         if (!isset($lead["id"])) {
-            $this->db->insert($this->tabla, $lead);
+            $this->db->insert("entidades", $lead);
             $id = $this->db->insert_id();
         } else {
             $this->db->where("id", $lead["id"]);
             $id = $lead["id"];
             unset($lead["id"]);
-            $this->db->update($this->tabla, $lead);
+            $this->db->update("entidades", $lead);
         }
 
 
