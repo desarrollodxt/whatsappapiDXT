@@ -37,7 +37,7 @@ class Comentario_model extends CI_Model
         $this->db->from($this->tabla);
         $this->db->join("comentario_tipo", "comentario_tipo.id = comentarios.id_comentario_tipo");
         $this->db->join("usuarios u", "u.id = comentarios.id_usuario");
-        $this->db->where("id_lead", $id_lead);
+        $this->db->where("comentarios.id_entidad", $id_lead);
         $this->db->order_by("fecha", "desc");
         $query = $this->db->get();
         return $query->result();
@@ -45,7 +45,7 @@ class Comentario_model extends CI_Model
 
     public function crearComentario($comentario, $isArchive, $fileInfo)
     {
-        $comentarioInfo = array("id_empresa" => 1, "id_usuario" => $comentario["usuario_id"], "id_comentario_tipo" => $comentario["tipocomentario"], "comentario" => $comentario["comentario"], "id_lead" => $comentario["id_lead"]);
+        $comentarioInfo = array("id_empresa" => 1, "id_usuario" => $comentario["usuario_id"], "id_comentario_tipo" => $comentario["tipocomentario"], "comentario" => $comentario["comentario"], "id_entidad" => $comentario["id_lead"]);
         if (intval($isArchive) == 1) {
             $comentarioInfo["url"] = $_SERVER["URL_RELATIVE_PATH"] . $fileInfo["nombre_archivo"];
             $comentarioInfo["nombre_archivo"] = $fileInfo["nombre_archivo"];

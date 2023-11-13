@@ -28,4 +28,26 @@ class Usuario_model extends CI_Model
         $roles = array_column($roles, "rol");
         return $roles;
     }
+
+    public function getUsuarioPorTipoEntidad($tipo_entidad)
+    {
+        $this->db->select("u.nombre,u.id,r.nombre rol")
+            ->from("usuarios u")->join("usuarios_roles ur", "ur.id_usuario = u.id")
+            ->join("roles r", "r.rol_id = ur.id_rol");
+
+        switch ($tipo_entidad) {
+            case '1':
+                $this->db->where_in("r.nombre", ["Vendedor", "comercial", "Jefe comercial"]);
+                break;
+            case '2':
+                $this->db->where_in("r.nombre", ["Compras", "Jefe operaciones"]);
+                break;
+            default:
+                # code...
+                break;
+        }
+
+        $query = $this->db->get();
+        return $query->result_array();
+    }
 }

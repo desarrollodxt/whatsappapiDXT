@@ -41,19 +41,24 @@ class CRM extends CI_Controller
         }
     }
 
-    public function getLeads()
+    public function getEntidades()
     {
         $usuario = $_GET["usuario"];
-
+        $tipo_entidad = isset($_GET["tipo_entidad"]) ? $_GET["tipo_entidad"] : 1;
         if (!isset($_GET["usuario"])) {
             $this->responder(true, "Debes enviar el usuario", null, 400);
         }
 
         $roles = $this->Usuario_model->getRoles($usuario);
 
-        $leads = $this->Lead_model->getLeads($usuario, $roles);
+        $leads = $this->Lead_model->getLeads($usuario, $roles, $tipo_entidad);
 
-        $this->responder(false, "", $leads, 200);
+        $data = [
+            "entidades" => $leads,
+            "usuarios" => $this->Usuario_model->getUsuarioPorTipoEntidad($tipo_entidad),
+            "headers" => ["Fecha Mod", "Nombre cliente", "Último comentario", "Vendedor", "Fase", "$", "Acción"]
+        ];
+        $this->responder(false, "", $data, 200);
     }
 
     public function cambiarFase()
@@ -78,6 +83,8 @@ class CRM extends CI_Controller
 
 
         $this->Lead_model->cambiarFase($fase, $id_lead);
+
+        $this->responder(false, "Fase cambiada correctamente", null, 200);
     }
 
     public function getComentarios()
@@ -106,7 +113,8 @@ class CRM extends CI_Controller
         $contactos = $this->Lead_model->getContactos($_GET["lead_id"]);
         $data = [
             "lead" => $lead,
-            "contactos" => $contactos
+            "contactos" => $contactos,
+            "usuarios" => $this->Usuario_model->getUsuarioPorTipoEntidad($lead["tipo_entidad"])
         ];
         $this->responder(false, "", $data, 200);
     }
