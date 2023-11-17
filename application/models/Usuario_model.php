@@ -42,6 +42,9 @@ class Usuario_model extends CI_Model
             case '2':
                 $this->db->where_in("r.nombre", ["Compras", "Jefe operaciones"]);
                 break;
+            case '3':
+                $this->db->where_in("r.nombre", ["Reclutador", "Admin", "Direccion"]);
+                break;
             default:
                 # code...
                 break;

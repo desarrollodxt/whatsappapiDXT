@@ -121,7 +121,7 @@ class CRM extends CI_Controller
 
     public function actualizarLead()
     {
-
+        $this->body["fecha_modificacion"] = date("Y-m-d H:i:s");
         $lead = $this->Lead_model->crearOrUpdateLead($this->body);
 
 
