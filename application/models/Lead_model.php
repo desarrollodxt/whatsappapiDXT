@@ -18,9 +18,11 @@ class Lead_model extends CI_Model
             $this->db->join("usuarios u", "u.id = e.id_vendedor", "left");
         } else if ($tipo_entidad == 2) {
             $this->db->join("usuarios u", "u.id = e.id_comprador", "left");
+        } else if ($tipo_entidad == 3) {
+            $this->db->join("usuarios u", "u.id = e.id_reclutador", "left");
         }
 
-        $this->db->select("e.tipo_entidad, e.id lead_id,e.id_vendedor, e.id_comprador, e.nombre, DATE_FORMAT(e.fecha_modificacion, '%Y-%m-%d') fecha_modificacion, e.nombre, c.comentario, u.nombre usuarioAsignado, e.fase, e.estimacion");
+        $this->db->select("e.tipo_entidad, e.id lead_id,e.id_vendedor, e.id_reclutador ,e.id_comprador, e.nombre, DATE_FORMAT(e.fecha_modificacion, '%Y-%m-%d') fecha_modificacion, e.nombre, c.comentario, u.nombre usuarioAsignado, e.fase, e.estimacion");
         $this->db->join("(select max(id) lascomment, id_entidad from comentarios c where id_entidad is not null group by id_entidad) as lc", "e.id = lc.id_entidad", "left");
         $this->db->join("comentarios c", "c.id = lc.lascomment", "left");
 
