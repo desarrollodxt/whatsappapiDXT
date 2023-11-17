@@ -11,13 +11,17 @@ class OperacionesVarios_model extends CI_Model
 
     public function getLeads()
     {
-        return $this->db->select("id, nombre, razon_social,fase,fecha_creacion_lead,estimacion,clase_actividad,observaciones,ubicaciongoogle,sitio_internet,dueno,1 tipo_empresa,usuario_crea,usuario_modifica,fecha_modificacion_lead ")->get("leads")->result_array();
+        return $this->db->select("id, nombre, razon_social,fase,fecha_creacion_lead,estimacion,clase_actividad,observaciones,ubicaciongoogle,sitio_internet,dueno,1 tipo_empresa,usuario_crea,usuario_modifica,fecha_modificacion_lead ")
+            ->where("isSync", 0)
+            ->limit(500)
+            ->get("leads")->result_array();
     }
 
     public function insertEmpresa($entidades)
     {
         try {
             $this->db->trans_begin();
+            echo 1;
             foreach ($entidades as $value) {
                 $empresa = [
                     "nombre" => $value["nombre"],
@@ -31,7 +35,7 @@ class OperacionesVarios_model extends CI_Model
                     "usuario_creo" => $value["usuario_crea"],
                     "fecha_creacion" => $value["fecha_creacion_lead"],
                     "activo" => 1,
-                    "tipo_empresa" => $value["tipo_empresa"],
+                    "tipo_entidad" => $value["tipo_empresa"],
                     "id_lead_tabla_anterior" => $value["id"],
                     "fecha_modificacion" => $value["fecha_modificacion_lead"],
                 ];
@@ -41,7 +45,7 @@ class OperacionesVarios_model extends CI_Model
                     $this->db->insert("usuarios_entidades", ["id_usuario" => $value["dueno"], "id_entidad" => $id_empresa]);
                 }
 
-
+                $this->db->update("leads", ["isSync" => 1], ["id" => $value["id"]]);
                 $this->db->update("comentarios", ["id_entidad" => $id_empresa], ["id_lead" => $value["id"]]);
             }
             $this->db->trans_commit();

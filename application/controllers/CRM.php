@@ -121,7 +121,10 @@ class CRM extends CI_Controller
 
     public function actualizarLead()
     {
-
+        if (isset($this->body["tipo_unidad"])) {
+            $this->responder(true, "Debes enviar el tipo de unidad", [], 200);
+        }
+        $this->body["fecha_modificacion"] = date("Y-m-d H:i:s");
         $lead = $this->Lead_model->crearOrUpdateLead($this->body);
 
 
