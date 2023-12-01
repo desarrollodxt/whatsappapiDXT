@@ -15,7 +15,7 @@ class Comentario_model extends CI_Model
 
         $data = [
             "id_empresa" => 1,
-            "id_lead" => $id_lead,
+            "id_entidad" => $id_lead,
             "id_usuario" => $usuario,
             "id_comentario_tipo" => 7,
             "comentario" => "Cotización para " . $destinatario,
