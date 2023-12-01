@@ -22,7 +22,10 @@ class Lead_model extends CI_Model
             $this->db->join("usuarios u", "u.id = e.id_reclutador", "left");
         }
 
-        $this->db->select("e.tipo_entidad, e.id lead_id,e.id_vendedor, e.id_reclutador ,e.id_comprador, e.nombre, DATE_FORMAT(e.fecha_modificacion, '%Y-%m-%d') fecha_modificacion, e.nombre, c.comentario, u.nombre usuarioAsignado, e.fase, e.estimacion");
+        $this->db->select("e.tipo_entidad, e.id lead_id,e.id_vendedor, e.id_reclutador ,e.id_comprador, e.nombre, DATE_FORMAT(e.fecha_modificacion, '%Y-%m-%d') fecha_modificacion, e.nombre, c.comentario, u.nombre usuarioAsignado, e.fase, e.estimacion,(SELECT GROUP_CONCAT(CONCAT(ar.tipo_archivo) SEPARATOR ', ')
+        FROM archivos ar 
+        WHERE ar.id_entidad = e.id  
+        ) as archivosRequisitos");
         $this->db->join("(select max(id) lascomment, id_entidad from comentarios c where id_entidad is not null group by id_entidad) as lc", "e.id = lc.id_entidad", "left");
         $this->db->join("comentarios c", "c.id = lc.lascomment", "left");
 
@@ -102,8 +105,39 @@ class Lead_model extends CI_Model
 
     public function getContactos($lead)
     {
-        $this->db->from("contactos_leads");
-        $this->db->where("lead_id", $lead);
+        $this->db->from("contactos");
+        $this->db->where("id_entidad", $lead);
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    public function getArchivos($lead)
+    {
+        $this->db->from("archivos");
+        $this->db->where("id_entidad", $lead);
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    public function getRequisitosArchivos($tipo_entidad)
+    {
+        $this->db->select("tipo_archivo");
+        $this->db->from("cat_archivos_requeridos_entidad");
+        $this->db->where("tipo_entidad", $tipo_entidad);
+        $query = $this->db->get();
+        return array_column($query->result_array(), "tipo_archivo");
+    }
+
+    public function guardarActividad($actividad)
+    {
+        $this->db->insert("actividades_crm", $actividad);
+        return $this->db->get_where("actividades_crm", ["id" => $this->db->insert_id()])->row_array();
+    }
+
+    public function getActividades($lead)
+    {
+        $this->db->from("actividades_crm")->order_by("fecha_actividad", "desc");
+        $this->db->where("id_entidad", $lead);
         $query = $this->db->get();
         return $query->result_array();
     }

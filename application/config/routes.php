@@ -50,6 +50,9 @@ $route["actualizarLead"] = "CRM/actualizarLead";
 $route["sendComentario"] = "CRM/sendComentario";
 $route["getCotizacionesLead"] = "CRM/getCotizacionesLead";
 $route["getCotizacionAnterior/(:any)"] = "CRM/getCotizacionAnterior/$1";
+$route["guardarArchivoEntidad"] = "CRM/guardarArchivoEntidad";
+$route["guardarContacto"] = "CRM/guardarContacto";
+$route["guardarActividad"] = "CRM/guardarActividad";
 // AJAX
 
 // api

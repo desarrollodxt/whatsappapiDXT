@@ -56,7 +56,8 @@ class CRM extends CI_Controller
         $data = [
             "entidades" => $leads,
             "usuarios" => $this->Usuario_model->getUsuarioPorTipoEntidad($tipo_entidad),
-            "headers" => ["Fecha Mod", "Nombre cliente", "Último comentario", "Vendedor", "Fase", "$", "Acción"]
+            "headers" => ["Fecha Mod", "Nombre cliente", "Último comentario", "Vendedor", "Fase", "$", "Acción"],
+            "requisitosArchivos" => $this->Lead_model->getRequisitosArchivos($tipo_entidad)
         ];
         $this->responder(false, "", $data, 200);
     }
@@ -114,7 +115,9 @@ class CRM extends CI_Controller
         $data = [
             "lead" => $lead,
             "contactos" => $contactos,
-            "usuarios" => $this->Usuario_model->getUsuarioPorTipoEntidad($lead["tipo_entidad"])
+            "usuarios" => $this->Usuario_model->getUsuarioPorTipoEntidad($lead["tipo_entidad"]),
+            "archivos" => $this->Lead_model->getArchivos($_GET["lead_id"]),
+            "actividades" => $this->Lead_model->getActividades($_GET["lead_id"])
         ];
         $this->responder(false, "", $data, 200);
     }
@@ -275,5 +278,71 @@ class CRM extends CI_Controller
         $cotizacion = $this->Cotizacion_model->getCotizacionAnterior($lead);
 
         $this->responder(false, "", $cotizacion, 200);
+    }
+
+    public function guardarArchivoEntidad()
+    {
+
+        $this->load->helper("uploadfile_helper");
+        $this->load->model('Comentario_model');
+        $entidad_id = $_POST["lead_id"];
+        $tipo_archivo = $_POST["tipoArchivo"];
+        $nombre_archivo = $_POST["nombre_archivo"];
+        //Get extension file $_FILES["inputFile"]["name"]
+
+        $resultUpload = $this->carga_achivo("inputFile", $_SERVER["UPLOAD_IMAGE_PATH"]);
+
+        $nombre_archivo_subido = $resultUpload["nombre_archivo"];
+        $extension = $resultUpload["extension"];
+
+        $archivoEntidad = [
+            "nombre_archivo" => $nombre_archivo . "." . $extension,
+            "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $nombre_archivo_subido,
+            "nombre" => $nombre_archivo,
+            "tipo_archivo" => $tipo_archivo,
+            "id_entidad" => $entidad_id,
+            "extension" => $extension,
+            "created_at" => date("Y-m-d H:i:s"),
+            "usuario_subio" => $_POST["usuario_subio"],
+            "active" => 1,
+            "nombre_archivo_subido" => $nombre_archivo_subido,
+            "url" => $_SERVER["URL_RELATIVE_PATH"] . $nombre_archivo_subido
+        ];
+
+        $this->load->model('Archivos_model');
+        $archivo = $this->Archivos_model->guardarArchivoEntidad($archivoEntidad);
+
+        $comentario = [
+            "usuario_subio" => $_POST["usuario_subio"],
+            "comentario" => "Subió la/el " . $tipo_archivo . " " . $nombre_archivo,
+            "id_lead" => $entidad_id
+        ];
+        $this->Comentario_model->crearComentarioArchivoEntidad($comentario, $resultUpload);
+        $this->responder(false, "", $archivo, 200);
+    }
+
+    public function guardarContacto()
+    {
+        $this->load->model('Contacto_model');
+        $this->Contacto_model->guardarContacto($this->body);
+        $this->responder(false, "Contacto guardado correctamente", null, 200);
+    }
+
+    public function guardarActividad()
+    {
+        $this->load->model("Lead_model");
+        $actividad = $this->Lead_model->guardarActividad($this->body);
+
+        $this->load->model('Comentario_model');
+        $comentario = [
+            "usuario_id" => $actividad["usuario_captura"],
+            "comentario" => "Agregó la actividad " . $actividad["tipo_actividad"] . " para el día y hora " . $actividad["fecha_actividad"],
+            "id_lead" => $actividad["id_entidad"],
+            "tipocomentario" => 1,
+        ];
+
+        $this->load->model("Comentario_model");
+        $this->Comentario_model->crearComentario($comentario, 0, null);
+        $this->responder(false, "Actividad guardada correctamente", $actividad, 200);
     }
 }

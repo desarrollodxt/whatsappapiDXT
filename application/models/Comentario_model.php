@@ -58,4 +58,37 @@ class Comentario_model extends CI_Model
         }
         return $id;
     }
+
+    public function crearComentarioArchivoEntidad($comentario, $fileInfo)
+    {
+        $comentarioInfo = array("id_empresa" => 1, "id_usuario" => $comentario["usuario_subio"], "comentario" => $comentario["comentario"], "id_entidad" => $comentario["id_lead"]);
+
+
+        $comentarioInfo["url"] = $_SERVER["URL_RELATIVE_PATH"] . $fileInfo["nombre_archivo"];
+        $comentarioInfo["nombre_archivo"] = $fileInfo["nombre_archivo"];
+        $comentarioInfo["extension"] = $fileInfo["extension"];
+
+        switch ($comentarioInfo["extension"]) {
+            case 'pdf':
+                $comentarioInfo["id_comentario_tipo"] = 7;
+                break;
+            case 'png':
+                $comentarioInfo["id_comentario_tipo"] = 6;
+                break;
+            case 'jpg':
+                $comentarioInfo["id_comentario_tipo"] = 6;
+                break;
+            case 'jpeg':
+                $comentarioInfo["id_comentario_tipo"] = 6;
+                break;
+            default:
+                $comentarioInfo["id_comentario_tipo"] = 7;
+
+                break;
+        }
+        $this->db->insert("comentarios", $comentarioInfo);
+        $id = $this->db->insert_id();
+
+        return $id;
+    }
 }
