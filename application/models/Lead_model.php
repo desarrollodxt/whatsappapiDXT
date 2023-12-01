@@ -56,7 +56,7 @@ class Lead_model extends CI_Model
                 ->order_by("e.fecha_modificacion", "DESC");
             $query = $this->db->get();
             return $query->result_array();
-        } elseif (validarRol($roles, ['Vendedor', 'comercial'])) {
+        } elseif (validarRol($roles, ['Vendedor', 'comercial', 'Comercial'])) {
             $this->db->where("e.tipo_entidad", $tipo_entidad);
             $this->db->where("u.id", $usuario)
                 ->order_by("e.fecha_modificacion", "DESC");

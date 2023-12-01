@@ -12,6 +12,7 @@ class OneOperacion extends CI_Controller
     {
         $this->load->model('OperacionesVarios_model');
         $empresas = $this->OperacionesVarios_model->getLeads();
+
         $this->OperacionesVarios_model->insertEmpresa($empresas);
     }
 
