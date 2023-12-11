@@ -53,4 +53,54 @@ class Usuario_model extends CI_Model
         $query = $this->db->get();
         return $query->result_array();
     }
+
+    public function getUsuariosComplemento($tipo_entidad)
+    {
+        $this->db->select("u.nombre,u.id,r.nombre rol")
+            ->from("usuarios u")->join("usuarios_roles ur", "ur.id_usuario = u.id")
+            ->join("roles r", "r.rol_id = ur.id_rol");
+
+        switch ($tipo_entidad) {
+            case '1':
+                $this->db->where_in("r.nombre", ["Atencion clientes"]);
+                break;
+            case '2':
+                $this->db->where_in("r.nombre", ["Planner"]);
+                break;
+            case '3':
+                $this->db->where_in("r.nombre", ["Recursos humanos"]);
+                break;
+            default:
+                # code...
+                break;
+        }
+
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    public function getUsuariosMesaControl($tipo_entidad)
+    {
+        $this->db->select("u.nombre,u.id,r.nombre rol")
+            ->from("usuarios u")->join("usuarios_roles ur", "ur.id_usuario = u.id")
+            ->join("roles r", "r.rol_id = ur.id_rol");
+
+        switch ($tipo_entidad) {
+            case '1':
+                $this->db->where_in("r.nombre", ["Mesa de control"]);
+                break;
+            case '2':
+                $this->db->where_in("r.nombre", ["Mesa de control"]);
+                break;
+            case '3':
+                $this->db->where_in("r.nombre", ["Mesa de control"]);
+                break;
+            default:
+                # code...
+                break;
+        }
+
+        $query = $this->db->get();
+        return $query->result_array();
+    }
 }

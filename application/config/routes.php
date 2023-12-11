@@ -53,6 +53,7 @@ $route["getCotizacionAnterior/(:any)"] = "CRM/getCotizacionAnterior/$1";
 $route["guardarArchivoEntidad"] = "CRM/guardarArchivoEntidad";
 $route["guardarContacto"] = "CRM/guardarContacto";
 $route["guardarActividad"] = "CRM/guardarActividad";
+$route["uploadProfilePictura"] = "CRM/uploadProfilePictura";
 // AJAX
 
 // api

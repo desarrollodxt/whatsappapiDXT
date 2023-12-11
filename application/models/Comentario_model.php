@@ -56,6 +56,8 @@ class Comentario_model extends CI_Model
             $this->db->insert("comentarios", $comentarioInfo);
             $id = $this->db->insert_id();
         }
+
+        $this->db->update("entidades", ["fecha_modificacion" => date("Y-m-d H:i:s")], ["id" => $comentario["id_lead"]]);
         return $id;
     }
 

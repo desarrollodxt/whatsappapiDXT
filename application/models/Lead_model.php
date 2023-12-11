@@ -18,6 +18,7 @@ class Lead_model extends CI_Model
             $this->db->join("usuarios u", "u.id = e.id_vendedor", "left");
         } else if ($tipo_entidad == 2) {
             $this->db->join("usuarios u", "u.id = e.id_comprador", "left");
+            $this->db->join("usuarios up", "up.id = e.id_planner", "left");
         } else if ($tipo_entidad == 3) {
             $this->db->join("usuarios u", "u.id = e.id_reclutador", "left");
         }
@@ -25,7 +26,7 @@ class Lead_model extends CI_Model
         $this->db->select("e.tipo_entidad, e.id lead_id,e.id_vendedor, e.id_reclutador ,e.id_comprador, e.nombre, DATE_FORMAT(e.fecha_modificacion, '%Y-%m-%d') fecha_modificacion, e.nombre, c.comentario, u.nombre usuarioAsignado, e.fase, e.estimacion,(SELECT GROUP_CONCAT(CONCAT(ar.tipo_archivo) SEPARATOR ', ')
         FROM archivos ar 
         WHERE ar.id_entidad = e.id  
-        ) as archivosRequisitos");
+        ) as archivosRequisitos, clase_actividad giro");
         $this->db->join("(select max(id) lascomment, id_entidad from comentarios c where id_entidad is not null group by id_entidad) as lc", "e.id = lc.id_entidad", "left");
         $this->db->join("comentarios c", "c.id = lc.lascomment", "left");
 
@@ -62,6 +63,14 @@ class Lead_model extends CI_Model
                 ->order_by("e.fecha_modificacion", "DESC");
             $query = $this->db->get();
             return $query->result_array();
+        } else if (validarRol($roles, ['Planner'])) {
+            $this->db->where("e.tipo_entidad", $tipo_entidad);
+            $this->db->where("up.id", $usuario)
+                ->order_by("e.fecha_modificacion", "DESC");
+            $query = $this->db->get();
+            return $query->result_array();
+        } else {
+            return [];
         }
     }
 
@@ -70,8 +79,10 @@ class Lead_model extends CI_Model
         $this->db->from('entidades e');
         $this->db->join("usuarios u", "u.id = e.id_vendedor", "left");
         $this->db->join("usuarios com", "com.id = e.id_comprador", "left");
+        $this->db->join("usuarios ume", "ume.id = e.id_sac", "left");
+        $this->db->join("usuarios upla", "upla.id = e.id_planner", "left");
 
-        $this->db->select("e.*, c.comentario, u.nombre vendedor, com.nombre comprador");
+        $this->db->select("e.*, c.comentario, u.nombre vendedor, com.nombre comprador, ume.nombre sac, upla.nombre planner");
         $this->db->join("(select max(id) lascomment, id_entidad from comentarios c where id_entidad is not null group by id_entidad) as lc", "e.id = lc.id_entidad", "left");
         $this->db->join("comentarios c", "c.id = lc.lascomment", "left");
         $this->db->where("e.id", $lead_id);

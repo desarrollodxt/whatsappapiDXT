@@ -149,7 +149,7 @@ class Bitacora_model extends CI_Model
         FROM bitacora_ln bl inner join (SELECT max(bl.id) last_move from bitacora_ln bl group by bl.id_bitacora_hd) as lbl on bl.id = lbl.last_move
         inner join bitacora_hd bh on bl.id_bitacora_hd = bh.id
         inner join api a on a.cv = bh.cv 
-        left join entidades e on e.id_rainder = a.id_cliente or e.id_rainder = a.id_transportista
+        left join entidades e on e.id_rainder = a.id_cliente and e.tipo_entidad = 1
         where bl.estatus in (1,2,3,4,5,6,7,8,9) AND `a`.`fecha_descarga_cv` > DATE_SUB(now(), INTERVAL 10 day) ORDER BY a.fecha_carga_ci ASC";
 
         $query = $this->db->query($sql);

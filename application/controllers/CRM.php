@@ -27,6 +27,7 @@ class CRM extends CI_Controller
         parent::__construct();
 
         $_body = file_get_contents('php://input');
+        // var_dump($_body);
         $this->load->model('Usuario_model');
         $this->load->model('Lead_model');
         //validar que haya un body
@@ -37,7 +38,7 @@ class CRM extends CI_Controller
         }
         //validar que el body sea un json, sino responder un error de peticion
         if (!is_array($this->body)) {
-            $this->responder(true, "Error en la peticion", null, 400);
+            // $this->responder(true, "Error en la peticion", null, 400);
         }
     }
 
@@ -77,7 +78,7 @@ class CRM extends CI_Controller
             $this->responder(true, "Debes enviar la fase y el id_lead", null, 400);
         }
 
-        if ($fase != 'F5 GANADO' && !validarRol($roles, ['Admin', 'Jefe comercial', 'Vendedor', 'comercial'])) {
+        if ($fase != 'F5 GANADO' && !validarRol($roles, ['Admin', 'Jefe comercial', 'Vendedor', 'comercial', 'Compras'])) {
             $this->responder(true, "No tienes permisos para cambiar a una fase diferente de Ganado", null, 400);
         }
 
@@ -116,6 +117,8 @@ class CRM extends CI_Controller
             "lead" => $lead,
             "contactos" => $contactos,
             "usuarios" => $this->Usuario_model->getUsuarioPorTipoEntidad($lead["tipo_entidad"]),
+            "usuariosComplemento" => $this->Usuario_model->getUsuariosComplemento($lead["tipo_entidad"]),
+            "usuariosMesaControl" => $this->Usuario_model->getUsuariosMesaControl($lead["tipo_entidad"]),
             "archivos" => $this->Lead_model->getArchivos($_GET["lead_id"]),
             "actividades" => $this->Lead_model->getActividades($_GET["lead_id"])
         ];
@@ -291,7 +294,9 @@ class CRM extends CI_Controller
         //Get extension file $_FILES["inputFile"]["name"]
 
         $resultUpload = $this->carga_achivo("inputFile", $_SERVER["UPLOAD_IMAGE_PATH"]);
-
+        if (!$resultUpload) {
+            $this->responder(true, "Los archivos de tipo " . pathinfo($_FILES["inputFile"]["name"], PATHINFO_EXTENSION) . " no están permitidos", null, 400);
+        }
         $nombre_archivo_subido = $resultUpload["nombre_archivo"];
         $extension = $resultUpload["extension"];
 
@@ -344,5 +349,64 @@ class CRM extends CI_Controller
         $this->load->model("Comentario_model");
         $this->Comentario_model->crearComentario($comentario, 0, null);
         $this->responder(false, "Actividad guardada correctamente", $actividad, 200);
+    }
+
+    public function uploadProfilePictura()
+    {
+        try {
+            $lead_id = $_POST["lead_id"];
+            $usuario_subio = $_POST["usuario_subio"];
+            //image in base64
+            $image = $_POST["image"];
+            //get Tipo Image
+            $tipo_imagen = explode(";", $image)[0];
+            $tipo_imagen = explode("/", $tipo_imagen)[1];
+            //determinar extension
+            $extension = "";
+            switch ($tipo_imagen) {
+                case 'png':
+                    $extension = "png";
+                    break;
+                case 'jpeg':
+                    $extension = "jpeg";
+                    break;
+                case 'jpg':
+                    $extension = "jpg";
+                    break;
+                default:
+                    $extension = "png";
+                    break;
+            }
+            $image = str_replace('data:image/' . $tipo_imagen . ';base64,', '', $image);
+            $image = str_replace(' ', '+', $image);
+            //decode image
+            $data = base64_decode($image);
+            //name image
+            $name = 'profile_' . $lead_id . '_' . time() . '.png';
+            //path image
+            $path = $_SERVER["UPLOAD_IMAGE_PATH"] . $name;
+            //save image
+            file_put_contents($path, $data);
+            //update lead
+            $this->Lead_model->crearOrUpdateLead(["id" => $lead_id, "img_perfil" => $name, "fecha_modificacion" => date("Y-m-d H:i:s")]);
+            //crear comentario
+            $this->load->model('Comentario_model');
+            $comentario = [
+                "usuario_id" => $usuario_subio,
+                "comentario" => "Actualizó la foto de perfil",
+                "id_lead" => $lead_id,
+                "tipocomentario" => 6
+            ];
+
+            $fileInfo = [
+                "nombre_archivo" => $name,
+                "extension" => $extension
+            ];
+            $this->Comentario_model->crearComentario($comentario, 1, $fileInfo);
+
+            $this->responder(false, "Foto de perfil actualizada correctamente", ["nombre" =>  $name], 200);
+        } catch (\Throwable $th) {
+            $this->responder(true, "Error al actualizar la foto de perfil", ["backtrace" => $th->getMessage()], 400);
+        }
     }
 }
