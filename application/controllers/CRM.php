@@ -329,10 +329,50 @@ class CRM extends CI_Controller
     public function guardarContacto()
     {
         $this->load->model('Contacto_model');
-        $this->Contacto_model->guardarContacto($this->body);
-        $this->responder(false, "Contacto guardado correctamente", null, 200);
+        $idContacto =  $this->Contacto_model->guardarContacto($this->body);
+        //crear comentario
+        $this->load->model('Comentario_model');
+        $comentarioText = "Agregó el contacto con id " . $idContacto . " de Nombre:" . $this->body["nombre"] . "; ";
+        if (isset($this->body["telefono"]) && $this->body["telefono"] != "") $comentarioText .= " Teléfono: " . $this->body["telefono"] . "; ";
+        if (isset($this->body["correo"]) && $this->body["correo"] != "") $comentarioText .= " Correo: " . $this->body["correo"] . "; ";
+        if (isset($this->body["puesto"]) && $this->body["puesto"] != "") $comentarioText .= " Puesto: " . $this->body["puesto"] . "; ";
+        if (isset($this->body["whatsapp"]) && $this->body["whatsapp"] != "") $comentarioText .= " Whatsapp: " . $this->body["whatsapp"] . "; ";
+
+        $comentario = [
+            "usuario_id" => $this->body["usuario_captura"],
+            "comentario" => $comentarioText,
+            "id_lead" => $this->body["id_entidad"],
+            "tipocomentario" => 1,
+        ];
+
+        $this->Comentario_model->crearComentario($comentario, 0, null);
+
+        $this->responder(false, "Contacto guardado correctamente", ["contacto_id" => $idContacto], 200);
     }
 
+    public function actualizarContacto()
+    {
+        $this->load->model('Contacto_model');
+        $this->Contacto_model->actualizarContacto($this->body);
+        //crear comentario
+        $this->load->model('Comentario_model');
+        $comentarioText = "Actualizó el contacto con id " . $this->body["id"] . " de Nombre: " . $this->body["nombre"] . "; ";
+        if (isset($this->body["telefono"]) && $this->body["telefono"] != "") $comentarioText .= " Teléfono: " . $this->body["telefono"] . "; ";
+        if (isset($this->body["correo"]) && $this->body["correo"] != "") $comentarioText .= " Correo: " . $this->body["correo"] . "; ";
+        if (isset($this->body["puesto"]) && $this->body["puesto"] != "") $comentarioText .= " Puesto: " . $this->body["puesto"] . "; ";
+        if (isset($this->body["whatsapp"]) && $this->body["whatsapp"] != "") $comentarioText .= " Empresa: " . $this->body["whatsapp"] . "; ";
+
+        $comentario = [
+            "usuario_id" => $this->body["usuario_captura"],
+            "comentario" => $comentarioText,
+            "id_lead" => $this->body["id_entidad"],
+            "tipocomentario" => 1,
+        ];
+
+        $this->Comentario_model->crearComentario($comentario, 0, null);
+
+        $this->responder(false, "Contacto actualizado correctamente", ["contacto_id" => $this->body["id"]], 200);
+    }
     public function guardarActividad()
     {
         $this->load->model("Lead_model");

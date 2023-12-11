@@ -20,4 +20,15 @@ class Contacto_model extends CI_Model
             throw $th;
         }
     }
+
+    public function actualizarContacto($info)
+    {
+        try {
+            $this->db->where('id', $info['id']);
+            $this->db->update($this->tabla, $info);
+            return $this->db->affected_rows();
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
 }
