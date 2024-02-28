@@ -229,7 +229,7 @@ class Proveedor_model extends CI_Model
     public function obtener_contactos_proveedor($proveedorId)
     {
         $this->db->select("c.id, c.nombre, SUBSTRING(SUBSTRING_INDEX(whatsapp, '521', -1), 1, 10) whatsapp, c.correo, c.tipo_contacto tipoContacto");
-        $this->db->from("contactos as c");
+        $this->db->from("contactos_bk as c");
         $this->db->where("c.id_empresa", $proveedorId);
         $query = $this->db->get();
         return $query->result_array();

@@ -37,7 +37,7 @@ $route["getProveedores"] = "Proveedor/getProveedores";
 $route["getUsuariosProveedores"] = "Proveedor/getUsuariosProveedores";
 $route["getInfoProveedor/(:num)"] = "Proveedor/getInfoProveedor/$1";
 $route["generarExportCotizacion"] = "Cotizaciones/generarExportCotizacion";
-
+$route["guardarAltacliente"] = "CRM/guardarAltacliente";
 
 $route["altaGrupoContacto"] = "Proveedor/altaGrupoContacto";
 
@@ -71,3 +71,6 @@ $route["enviarMasivo"] = "Proveedor/enviarMasivo";
 
 $route["convertLeadsInEmpresasClientes"] = "OneOperacion/convertLeadsInEmpresasClientes";
 $route["setVendedor"] = "OneOperacion/setVendedor";
+
+
+$route["generarToken"] = "CRM/generarToken";

@@ -1,6 +1,11 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+use Firebase\JWT\ExpiredException;
+
+
 class CRM extends CI_Controller
 {
     public $body = [];
@@ -61,6 +66,352 @@ class CRM extends CI_Controller
             "requisitosArchivos" => $this->Lead_model->getRequisitosArchivos($tipo_entidad)
         ];
         $this->responder(false, "", $data, 200);
+    }
+
+    /**
+     * Generar token
+     * 
+     */
+
+    public function generarToken()
+    {
+        //expiracion en 1 semana
+        $this->body["exp"] = time() + (60 * 60 * 24 * 7);
+        $key = "11dxt2024";
+
+        $jwt = JWT::encode($this->body, $key, 'HS256');
+        $this->responder(false, "", ["token" => $jwt], 200);
+    }
+
+    public function guardarAltacliente()
+    {
+        //set timezone mty
+        date_default_timezone_set('America/Monterrey');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->responder(true, "Método no permitido", null, 400);
+        }
+
+
+
+
+        if (!isset($_POST["token"])) {
+            $this->responder(true, "Debes enviar el token", null, 400);
+        }
+
+        $token = $_POST["token"];
+
+        if (!isset($_POST["usuario_id"]) || !isset($_POST["entidad_id"])) {
+            $this->responder(true, "Debes enviar el usuario y la entidad", null, 400);
+        }
+        $usuario_id = $_POST["usuario_id"];
+        $entidad_id = $_POST["entidad_id"];
+
+        $key = "11dxt2024";
+        try {
+            $decoded = JWT::decode($token, new Key($key, 'HS256'));
+        } catch (ExpiredException $e) {
+            $this->responder(true, "Token expirado", null, 400);
+        } catch (\Exception $e) {
+            $this->responder(true, "Token inválido", null, 400);
+        }
+
+        $actaConstitutiva = $_FILES["fileActa"];
+        $CaratulaEdo = $_FILES["fileCaratula"];
+        $comprobanteDomicilio = $_FILES["fileComprobante"];
+        $constanciaFiscal = $_FILES["fileConstancia"];
+        $identificacion = $_FILES["fileIdentificacion"];
+        $opinionCumplimiento = $_FILES["fileOpinion"];
+        $poderRepresentante = $_FILES["filePoder"];
+        $tarjetaCirculacion = $_FILES["fileTarjeta"];
+        $acuerdoTransportista = $_FILES["fileAcuerdo"];
+
+        // "nombre_razon": "Joe doe",
+        // "calle": "Calle siempre viva",
+        // "numExterno": "301",
+        // "numInterno": "",
+        // "cp": "67168",
+        // "colonia": "colonia",
+        // "rfc": "MERL960608JQ7",
+        // "ciudad": "Monterrey",
+        // "telefono": "822569874521",
+        // "giro": "TRANSPORTE",
+        // "antiguedad": "1 año",
+
+        $datosCaptura = [
+            "nombre_razon" => $_POST["nombre_razon"],
+            "calle" => $_POST["calle"],
+            "numExterno" => $_POST["numExterno"],
+            "numInterno" => $_POST["numInterno"],
+            "cp" => $_POST["cp"],
+            "colonia" => $_POST["colonia"],
+            "rfc" => $_POST["rfc"],
+            "ciudad" => $_POST["ciudad"],
+            "telefono" => $_POST["telefono"],
+            "giro" => $_POST["giro"],
+            "antiguedad" => $_POST["antiguedad"],
+        ];
+
+
+        //hay inputs con contactos que estan compuestos por inputs con el siguiente formato: inputs de tipo text con los siguientes nombres
+        //nombre1,puesto1,telefono1,email1,Whatsapp1
+        //nombre2,puesto2,telefono2,email2,Whatsapp2
+        //nombre3,puesto3,telefono3,email3,Whatsapp3
+        //nombre4,puesto4,telefono4,email4,Whatsapp4
+        //nombre5,puesto5,telefono5,email5,Whatsapp5
+        //nombre6,puesto6,telefono6,email6,Whatsapp6
+        //nombre7,puesto7,telefono7,email7,Whatsapp7
+        //hay que juntarlos en un array y guardarlos en cada lead, solamente los que tengan nombre y puesto
+        $contactos = [];
+
+        for ($i = 1; $i <= 7; $i++) {
+            if (isset($_POST["nombre" . $i]) && $_POST["nombre" . $i] != "" && isset($_POST["puesto" . $i]) && $_POST["puesto" . $i] != "") {
+                $contactos[] = [
+                    "nombre" => $_POST["nombre" . $i],
+                    "tipo_contacto" => $_POST["puesto" . $i],
+                    "telefono" => $_POST["telefono" . $i],
+                    "correo" => $_POST["email" . $i],
+                    "whatsapp" => $_POST["whatsapp" . $i],
+                    "usuario_captura" => $usuario_id,
+                    "puesto" => $_POST["puesto" . $i],
+                    "id_entidad" => $entidad_id,
+                    "created_at" => date("Y-m-d H:i:s")
+                ];
+            }
+        }
+
+        //ahora si hay que empezar a guardar los datos primero los arrchivos
+        $this->load->helper("uploadfile_helper");
+        $this->load->model('Archivos_model');
+        $archivos = [];
+        if ($actaConstitutiva["name"] != "") {
+            $resultUpload = $this->carga_achivo("fileActa", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Acta Constitutiva", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Acta Constitutiva",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Acta Constitutiva",
+                "tipo_archivo" => "Acta Constitutiva",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => $usuario_id,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+        if ($CaratulaEdo["name"] != "") {
+            $resultUpload = $this->carga_achivo("fileCaratula", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Caratula del Estado", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Caratula del Estado",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Caratula del Estado",
+                "tipo_archivo" => "Caratula del Estado",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => $usuario_id,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+        if ($comprobanteDomicilio["name"] != "") {
+            $resultUpload = $this->carga_achivo("fileComprobante", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Comprobante de Domicilio", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Comprobante de Domicilio",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Comprobante de Domicilio",
+                "tipo_archivo" => "Comprobante de Domicilio",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => $usuario_id,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+        if ($constanciaFiscal["name"] != "") {
+            $resultUpload = $this->carga_achivo("fileConstancia", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Constancia Fiscal", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Constancia Fiscal",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Constancia Fiscal",
+                "tipo_archivo" => "Constancia Fiscal",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => $usuario_id,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+        if ($identificacion["name"] != "") {
+            $resultUpload = $this->carga_achivo("fileIdentificacion", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Identificación", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Identificación",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Identificación",
+                "tipo_archivo" => "Identificación",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => $usuario_id,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+        if ($opinionCumplimiento["name"] != "") {
+            $resultUpload = $this->carga_achivo("fileOpinion", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Opinión de Cumplimiento", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Opinión de Cumplimiento",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Opinión de Cumplimiento",
+                "tipo_archivo" => "Opinión de Cumplimiento",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => $usuario_id,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+        if ($poderRepresentante["name"] != "") {
+            $resultUpload = $this->carga_achivo("filePoder", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Poder del Representante", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Poder del Representante",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Poder del Representante",
+                "tipo_archivo" => "Poder del Representante",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => $usuario_id,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+
+        if ($tarjetaCirculacion["name"] != "") {
+            $resultUpload = $this->carga_achivo("fileTarjeta", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Tarjeta de Circulación", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Tarjeta de Circulación",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Tarjeta de Circulación",
+                "tipo_archivo" => "Tarjeta de Circulación",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => $usuario_id,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+        if ($acuerdoTransportista["name"] != "") {
+            $resultUpload = $this->carga_achivo("fileAcuerdo", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Acuerdo de Transportista", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Acuerdo de Transportista",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Acuerdo de Transportista",
+                "tipo_archivo" => "Acuerdo de Transportista",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => $usuario_id,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+        $this->load->model('Comentario_model');
+        $this->load->model('Contacto_model');
+        $this->load->model('Archivos_model');
+
+        foreach ($archivos as $archivo) {
+
+            $this->Archivos_model->guardarArchivoEntidad($archivo);
+
+            $comentario = [
+                "usuario_subio" => $usuario_id,
+                "comentario" => "El cliente/proveedor subió la/el " . $archivo["nombre_archivo"],
+                "id_lead" => $entidad_id
+            ];
+
+            $fileInfo = [
+                "nombre_archivo" => $archivo["nombre_archivo"],
+                "extension" => $archivo["extension"]
+            ];
+
+            $this->Comentario_model->crearComentarioArchivoEntidad($comentario, $fileInfo);
+        }
+        foreach ($contactos as $contacto) {
+            $this->Contacto_model->guardarContacto($contacto);
+
+            $comentario = [
+                "usuario_subio" => $usuario_id,
+                "comentario" => "El cliente/proveedor subió un contacto " . $contacto["nombre"],
+                "id_lead" => $entidad_id,
+                "usuario_id" => $usuario_id,
+                "tipocomentario" => 1,
+            ];
+
+            $this->Comentario_model->crearComentario($comentario, 0, null);
+        }
+
+
+        $this->Lead_model->agregarObservacion($entidad_id, json_encode($datosCaptura));
+
+        $this->responder(false, "Cliente guardado correctamente", [], 200);
     }
 
     public function cambiarFase()

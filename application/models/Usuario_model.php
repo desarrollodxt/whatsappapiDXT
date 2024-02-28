@@ -37,10 +37,10 @@ class Usuario_model extends CI_Model
 
         switch ($tipo_entidad) {
             case '1':
-                $this->db->where_in("r.nombre", ["Vendedor", "comercial", "Jefe comercial"]);
+                $this->db->where_in("r.nombre", ["Vendedor", "comercial", "Jefe comercial" ,"Gerente sucursal"]);
                 break;
             case '2':
-                $this->db->where_in("r.nombre", ["Compras", "Jefe operaciones"]);
+                $this->db->where_in("r.nombre", ["Compras", "Jefe operaciones" ,"Gerente sucursal"]);
                 break;
             case '3':
                 $this->db->where_in("r.nombre", ["Reclutador", "Admin", "Direccion"]);
