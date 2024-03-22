@@ -30,7 +30,14 @@ class CRM extends CI_Controller
     public function __construct()
     {
         parent::__construct();
+        header('Access-Control-Allow-Origin: https://dxt.com.mx');
+        header('Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE');
 
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            header('Access-Control-Allow-Origin: https://dxt.com.mx');
+            header('Access-Control-Allow-Headers: Content-Type');
+            exit;
+        }
         $_body = file_get_contents('php://input');
         // var_dump($_body);
         $this->load->model('Usuario_model');
@@ -83,6 +90,9 @@ class CRM extends CI_Controller
         $this->responder(false, "", ["token" => $jwt], 200);
     }
 
+    /**
+     * Guardar informacion de un cliente, subida por el en otra plataforma
+     */
     public function guardarAltacliente()
     {
         //set timezone mty
@@ -410,6 +420,200 @@ class CRM extends CI_Controller
 
 
         $this->Lead_model->agregarObservacion($entidad_id, json_encode($datosCaptura));
+
+        $this->responder(false, "Cliente guardado correctamente", [], 200);
+    }
+
+    public function altaEntidadRh()
+    {
+        date_default_timezone_set('America/Monterrey');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->responder(true, "Método no permitido", null, 400);
+        }
+
+        //CREAR ENTIDAD DE RH
+        // //  nombre: ,
+        // razon_social: ,
+        // fase: fase,
+        // clase_actividad: giro,
+        // sitio_internet: sitiointernet,
+        // ubicaciongoogle: ubicaciongoogle,
+        // estimacion: estimacion,
+        // tipo_entidad: tipo_entidad_Frm,
+        // observaciones
+
+        $datos_entidad = [
+            "nombre" => $_POST["nombre_razon"],
+            "razon_social" => $_POST["puesto"] . " - " . $_POST["ciudad"] . " - " . $_POST["utm_source"],
+            "fase" => "F1 IDENTIFICADO",
+            "fuente" => $_POST["utm_source"],
+            "estimacion" => intval($_POST["edad"]),
+            "observaciones" => "direccion: " . $_POST["calle"] .
+                " " . $_POST["numExterno"] . " int: " . $_POST["numInterno"] . " colonia: " . $_POST["colonia"] . " cp: " . $_POST["cp"] . " ciudad: " . $_POST["ciudad"] . "\n fecha nacimiento: " . $_POST["fechaNacimiento"],
+            "clase_actividad" => $_POST["puesto"] . " - " . $_POST["ciudad"],
+            "tipo_entidad" => 3,
+            "fecha_creacion" => date("Y-m-d H:i:s"),
+            "fecha_modificacion" => date("Y-m-d H:i:s"),
+            "usuario_creo" => 1,
+            "id_reclutador" => 1,
+            "ubicaciongoogle" => $_POST["rfc"],
+            "sitio_internet" => $_POST["pretencionSalarial"],
+        ];
+
+        $entidad = $this->Lead_model->crearOrUpdateLead($datos_entidad);
+        $entidad_id = $entidad["id"];
+
+
+        echo "entidad_id: " . $entidad_id;
+
+        $CurriculumVitae = $_FILES["fileCv"];
+        $IdentificacionOficial = $_FILES["fileIdentificacionOficial"];
+
+
+        $datosCapturaNuevaEntidadRH = [];
+
+
+        $this->load->helper("uploadfile_helper");
+
+        $this->load->model('Archivos_model');
+
+        $archivos = [];
+
+        if ($CurriculumVitae["name"] != "") {
+            $resultUpload = $this->carga_achivo("fileCv", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Curriculum Vitae", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Curriculum Vitae",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Curriculum Vitae",
+                "tipo_archivo" => "Curriculum Vitae",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => 1,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+        if ($IdentificacionOficial["name"] != "") {
+            $resultUpload = $this->carga_achivo("fileIdentificacionOficial", $_SERVER["UPLOAD_IMAGE_PATH"]);
+            if (!$resultUpload) {
+                $this->responder(true, "Error al subir el archivo Identificación Oficial", null, 400);
+            }
+            $archivos[] = [
+                "nombre_archivo" => "Identificación Oficial",
+                "path" => $_SERVER["UPLOAD_IMAGE_PATH"] . $resultUpload["nombre_archivo"],
+                "nombre" => "Identificación Oficial",
+                "tipo_archivo" => "Identificación Oficial",
+                "id_entidad" => $entidad_id,
+                "extension" => $resultUpload["extension"],
+                "created_at" => date("Y-m-d H:i:s"),
+                "usuario_subio" => 1,
+                "active" => 1,
+                "nombre_archivo_subido" => $resultUpload["nombre_archivo"],
+                "url" => $_SERVER["URL_RELATIVE_PATH"] . $resultUpload["nombre_archivo"],
+                "extension" => $resultUpload["extension"]
+            ];
+        }
+
+
+        $this->load->model('Comentario_model');
+        $this->load->model('Contacto_model');
+        $this->load->model('Archivos_model');
+
+        foreach ($archivos as $archivo) {
+
+            $this->Archivos_model->guardarArchivoEntidad($archivo);
+
+            $comentario = [
+                "usuario_subio" => 1,
+                "comentario" => "El cliente/proveedor subió la/el " . $archivo["nombre_archivo"],
+                "id_lead" => $entidad_id
+            ];
+
+            $fileInfo = [
+                "nombre_archivo" => $archivo["nombre_archivo"],
+                "extension" => $archivo["extension"]
+            ];
+
+            $this->Comentario_model->crearComentarioArchivoEntidad($comentario, $fileInfo);
+        }
+
+        ///
+
+        $contactos = [];
+
+        for ($i = 1; $i <= 7; $i++) {
+            if (isset($_POST["nombre" . $i]) && $_POST["nombre" . $i] != "" && isset($_POST["puesto" . $i]) && $_POST["puesto" . $i] != "") {
+                $contactos[] = [
+                    "nombre" => $_POST["nombre" . $i],
+                    "tipo_contacto" => $_POST["puesto" . $i],
+                    "telefono" => $_POST["telefono" . $i],
+                    "correo" => $_POST["email" . $i],
+                    "whatsapp" => $_POST["whatsapp" . $i],
+                    "usuario_captura" => 1,
+                    "puesto" => $_POST["puesto" . $i],
+                    "id_entidad" => $entidad_id,
+                    "created_at" => date("Y-m-d H:i:s")
+                ];
+            }
+        }
+
+
+        foreach ($contactos as $contacto) {
+            $this->Contacto_model->guardarContacto($contacto);
+
+            $comentario = [
+                "usuario_subio" => 1,
+                "comentario" => "El cliente/proveedor subió un contacto " . $contacto["nombre"],
+                "id_lead" => $entidad_id,
+                "usuario_id" => 1,
+                "tipocomentario" => 1,
+            ];
+
+            $this->Comentario_model->crearComentario($comentario, 0, null);
+        }
+
+
+        $guardar_contacto_lead = [
+            "nombre" => $_POST["nombre_razon"],
+            "tipo_contacto" => "aplicante",
+            "telefono" => $_POST["telefono"],
+            "correo" => $_POST["email"],
+            "usuario_captura" => 1,
+            "puesto" => "aplicante",
+            "id_entidad" => $entidad_id,
+            "created_at" => date("Y-m-d H:i:s")
+        ];
+
+        $this->Contacto_model->guardarContacto($guardar_contacto_lead);
+
+        $comentario = [
+            "usuario_subio" => 1,
+            "comentario" => "El cliente/proveedor subió un contacto " . $_POST["nombre_razon"],
+            "id_lead" => $entidad_id,
+            "usuario_id" => 1,
+            "tipocomentario" => 1,
+        ];
+
+        $this->Comentario_model->crearComentario($comentario, 0, null);
+
+        //$_POST["experiencia_telemarketing"], $_POST["experiencia_logistica"],  $_POST["experiencia_ventas"],$_POST["experiencia_equipos"],
+        //guardar como comentarios
+        $comentario = [
+            "usuario_subio" => 1,
+            "comentario" => "Experiencia en telemarketing: " . $_POST["experiencia_telemarketing"] . "\n Experiencia en logística: " . $_POST["experiencia_logistica"] . "\n Experiencia en ventas: " . $_POST["experiencia_ventas"] . "\n Experiencia en equipos: " . $_POST["experiencia_equipos"],
+            "id_lead" => $entidad_id,
+            "usuario_id" => 1,
+            "tipocomentario" => 1,
+        ];
+
+        $this->Comentario_model->crearComentario($comentario, 0, null);
 
         $this->responder(false, "Cliente guardado correctamente", [], 200);
     }

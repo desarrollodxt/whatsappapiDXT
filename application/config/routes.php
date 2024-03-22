@@ -38,6 +38,7 @@ $route["getUsuariosProveedores"] = "Proveedor/getUsuariosProveedores";
 $route["getInfoProveedor/(:num)"] = "Proveedor/getInfoProveedor/$1";
 $route["generarExportCotizacion"] = "Cotizaciones/generarExportCotizacion";
 $route["guardarAltacliente"] = "CRM/guardarAltacliente";
+$route["altaEntidadRh"] = "CRM/altaEntidadRh";
 
 $route["altaGrupoContacto"] = "Proveedor/altaGrupoContacto";
 
@@ -67,7 +68,7 @@ $route["whatsapp/programarMensaje/(:any)"] = "Whatsapp/programarMensaje/$1";
 $route["whatsapp/enviarMensajeProgramado"] = "Whatsapp/enviarMensajeProgramado";
 $route["enviarMasivo"] = "Proveedor/enviarMasivo";
 
-
+$route["login_soporte_sistema"] = "Login/login_soporte_sistema";
 
 $route["convertLeadsInEmpresasClientes"] = "OneOperacion/convertLeadsInEmpresasClientes";
 $route["setVendedor"] = "OneOperacion/setVendedor";

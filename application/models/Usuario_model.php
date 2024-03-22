@@ -19,6 +19,16 @@ class Usuario_model extends CI_Model
         return $usuario;
     }
 
+    public function login_soporte_sistema($usuario, $password)
+    {
+        $query = $this->db->from($this->tabla)->where("email", $usuario)->where("contrasena", md5($password))->get();
+
+        $usuario = $query->row_array();
+        if (!$usuario) return [];
+        $usuario["roles"] = $this->getRoles($usuario["id"]);
+        return $usuario;
+    }
+
     public function getRoles($id_usuario)
     {
         $query = $this->db->select("r.nombre rol")->from("usuarios_roles ur")->join("roles r", "r.rol_id = ur.id_rol")->where("ur.id_usuario", $id_usuario)->get();
@@ -37,10 +47,10 @@ class Usuario_model extends CI_Model
 
         switch ($tipo_entidad) {
             case '1':
-                $this->db->where_in("r.nombre", ["Vendedor", "comercial", "Jefe comercial" ,"Gerente sucursal"]);
+                $this->db->where_in("r.nombre", ["Vendedor", "comercial", "Jefe comercial", "Gerente sucursal"]);
                 break;
             case '2':
-                $this->db->where_in("r.nombre", ["Compras", "Jefe operaciones" ,"Gerente sucursal"]);
+                $this->db->where_in("r.nombre", ["Compras", "Jefe operaciones", "Gerente sucursal", "Jefe de compras"]);
                 break;
             case '3':
                 $this->db->where_in("r.nombre", ["Reclutador", "Admin", "Direccion"]);

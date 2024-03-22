@@ -23,7 +23,7 @@ class Lead_model extends CI_Model
             $this->db->join("usuarios u", "u.id = e.id_reclutador", "left");
         }
 
-        $this->db->select("e.tipo_entidad, e.id lead_id,e.id_vendedor, e.id_reclutador ,e.id_comprador, e.nombre, DATE_FORMAT(e.fecha_modificacion, '%Y-%m-%d') fecha_modificacion, e.nombre, CONCAT(left(c.comentario,50),'...') comentario, u.nombre usuarioAsignado, e.fase, e.estimacion,(SELECT GROUP_CONCAT(CONCAT(ar.tipo_archivo) SEPARATOR ', ')
+        $this->db->select("e.tipo_entidad, e.id lead_id,e.id_vendedor, e.id_reclutador ,e.id_comprador, e.nombre, DATE_FORMAT(e.fecha_modificacion, '%Y-%m-%d') fecha_modificacion, e.nombre, c.comentario, u.nombre usuarioAsignado, e.fase, e.estimacion,(SELECT GROUP_CONCAT(CONCAT(ar.tipo_archivo) SEPARATOR ', ')
         FROM archivos ar 
         WHERE ar.id_entidad = e.id  
         ) as archivosRequisitos, clase_actividad giro");
@@ -36,21 +36,20 @@ class Lead_model extends CI_Model
             $query = $this->db->get();
             return $query->result_array();
         } else if (validarRol($roles, ['Jefe comercial'])) {
-            // if ($tipo_entidad != 1) {
-            //     return [];
-            // }
+            if ($tipo_entidad != 1) {
+                return [];
+            }
             $this->db->where("e.tipo_entidad", $tipo_entidad)
                 ->order_by("e.fecha_modificacion", "DESC");
             $query = $this->db->get();
             return $query->result_array();
-        } else if (validarRol($roles, ['Jefe operaciones', 'Jefe de compras'])) {
+        } else if (validarRol($roles, ['Jefe operaciones'])) {
             if ($tipo_entidad != 2) {
-                // $this->db->where("e.tipo_entidad", $tipo_entidad);
-                // $this->db->where("u.id", $usuario)
-                //     ->order_by("e.fecha_modificacion", "DESC");
-                // $query = $this->db->get();
-                // return $query->result_array();
-                return [];
+                $this->db->where("e.tipo_entidad", $tipo_entidad);
+                $this->db->where("u.id", $usuario)
+                    ->order_by("e.fecha_modificacion", "DESC");
+                $query = $this->db->get();
+                return $query->result_array();
             }
             $this->db->where("e.tipo_entidad", $tipo_entidad)
                 ->order_by("e.fecha_modificacion", "DESC");
@@ -111,23 +110,6 @@ class Lead_model extends CI_Model
         $query = $this->db->get();
         return $query->row_array();
     }
-
-    /**
-     * Agregar contenido a observaciones, tomar lo que ya hay en observaciones y agregarle el nuevo contenido
-     * @param int $lead_id
-     * @param string $contenido
-     * @return void
-     */
-
-    public function agregarObservacion($lead_id, $contenido)
-    {
-        $lead = $this->getLead($lead_id);
-        $observaciones = $lead["observaciones"];
-        $observaciones .= "\n" . "----------" . "\n" . date("Y-m-d H:i:s") . "/n - " . $contenido;
-        $this->db->where("id", $lead_id);
-        $this->db->update("entidades", ["observaciones" => $observaciones]);
-    }
-
 
     public function cambiarFase($fase, $id_lead)
     {
