@@ -68,7 +68,7 @@ class Bitacora extends CI_Controller
             $planner = $usuario["usuario_rainde"];
         }
 
-        $bitacora = $this->Bitacora_model->getBitacoraMovimientosActivos($planner);
+        $bitacora = $this->Bitacora_model->getBitacoraMovimientosActivos($usuario["roles"], $usuario["id"], $planner);
         $this->responder(false, "",  $bitacora, 200);
     }
 
