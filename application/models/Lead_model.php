@@ -16,6 +16,7 @@ class Lead_model extends CI_Model
 
         if ($tipo_entidad == 1) {
             $this->db->join("usuarios u", "u.id = e.id_vendedor", "left");
+            $this->db->join("usuarios up", "up.id = e.id_sac", "left");
         } else if ($tipo_entidad == 2) {
             $this->db->join("usuarios u", "u.id = e.id_comprador", "left");
             $this->db->join("usuarios up", "up.id = e.id_planner", "left");
@@ -76,6 +77,12 @@ class Lead_model extends CI_Model
         } elseif (validarRol($roles, ['Vendedor', 'comercial', 'Comercial'])) {
             $this->db->where("e.tipo_entidad", $tipo_entidad);
             $this->db->where("u.id", $usuario)
+                ->order_by("e.fecha_modificacion", "DESC");
+            $query = $this->db->get();
+            return $query->result_array();
+        } else if (validarRol($roles, ['Agente de cuenta'])) {
+            $this->db->where("e.tipo_entidad", $tipo_entidad);
+            $this->db->where("up.id", $usuario)
                 ->order_by("e.fecha_modificacion", "DESC");
             $query = $this->db->get();
             return $query->result_array();
