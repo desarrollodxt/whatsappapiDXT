@@ -56,6 +56,9 @@ $route["guardarContacto"] = "CRM/guardarContacto";
 $route["actualizarContacto"] = "CRM/actualizarContacto";
 $route["guardarActividad"] = "CRM/guardarActividad";
 $route["uploadProfilePictura"] = "CRM/uploadProfilePictura";
+
+$route["getComentariosfc"] = "Cuentasporcobrar/getComentariosfc";
+$route["sendComentariofc"] = "Cuentasporcobrar/sendComentariofc";
 // AJAX
 
 // api

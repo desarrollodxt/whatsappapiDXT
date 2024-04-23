@@ -2,6 +2,7 @@
 
 function redimensionar_imagen($nombreimg, $rutaimg, $xmax, $ymax)
 {
+
     $ext = explode(".", $nombreimg);
     $ext = $ext[count($ext) - 1];
 
@@ -26,6 +27,9 @@ function redimensionar_imagen($nombreimg, $rutaimg, $xmax, $ymax)
         $nuevay = $ymax;
         $nuevax = $x / $y * $nuevay;
     }
+    //convert to int 
+    $nuevax = intval($nuevax);
+
 
     $img2 = imagecreatetruecolor($nuevax, $nuevay);
     imagecopyresized($img2, $imagen, 0, 0, 0, 0, floor($nuevax), floor($nuevay), $x, $y);
