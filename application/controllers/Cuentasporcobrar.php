@@ -63,14 +63,24 @@ class Cuentasporcobrar extends CI_Controller
         if (!isset($_GET["cv"])) {
             $this->responder(true, "Debes enviar el numero de cv", null, 400);
         }
-
+        $this->load->model('Cv_model');
         $id_cliente = $_GET["id_cliente"];
         $cv = $_GET["cv"];
         $factura = $_GET["factura"];
         $this->load->model('Comentario_model');
         $comentarios = $this->Comentario_model->getComentariosfc($id_cliente, $cv, $factura);
+        $infoFactura = $this->Cv_model->getInfoFactura($id_cliente, $cv, $factura);
+        $data = [
+            "cliente" => $infoFactura[0]["cliente"],
+            "factura" => $infoFactura[0]["factura"],
+            "cv" => $infoFactura[0]["cv"],
+            "referencia" => $infoFactura[0]["referencia"],
+            "fecha" => explode(" ", $infoFactura[0]["fecha"])[0],
+            "monto" => $infoFactura[0]["monto"],
+            "comentarios" => $comentarios
+        ];
 
-        $this->responder(false, "ok", $comentarios);
+        $this->responder(false, "ok", $data);
     }
 
 
@@ -93,6 +103,7 @@ class Cuentasporcobrar extends CI_Controller
             $this->Comentario_model->crearComentariofc($_POST, $isArchivo, $resultUpload);
 
             $data["comentarios"] = $comentarios = $this->Comentario_model->getComentariosfc($_POST["id_cliente"], $_POST["cv"], $_POST["factura"]);
+
             $this->responder(false, "",   $data);
         }
 

@@ -97,34 +97,14 @@ class Comentario_model extends CI_Model
 
     public function getComentariosfc($id_cliente, $cv, $factura)
     {
-        $query_sql = "SELECT c.id,										
-                        CONCAT(
-                            '<div class=\"',
-                            CHAR(34),
-                            'celda-comentarios', 
-                            CHAR(34),
-                            '\">',
-                            ct.icono,
-                            '<span style=\"color:#868e96;\">',
-                            usuarios.nombre,
-                            '',
-                            date_format(c.fecha, '%e %b %y'), 
-                            ' ',
-                            date_format(c.fecha, '%l:%i %p'),
-                            ' ',
-                            CASE WHEN DATEDIFF(NOW(), c.fecha)= 0 THEN 'hoy' ELSE CONCAT(DATEDIFF(NOW(), c.fecha), ' días') end,
-                            '</span><br />', 	
-                            CASE 
-                                WHEN id_comentario_tipo = 6 THEN CONCAT('<div><a href=\"', url, '\"><img class=foto src=\"', url, '\"></a></div>')
-                                WHEN id_comentario_tipo = 7 THEN CONCAT('<div><a href=\"', url, '\">', cta.icono_extension, '<span class=\"', CHAR(34), 'nombre_archivo', CHAR(34), '>', c.nombre_archivo , '</span></a></div>')
-                                ELSE ''
-                            END,
-                            '<div class=\"txt-comentario\">', 
-                            replace(c.comentario, CHAR(13, 10), '<br />'),
-                            '</div></div>') as comentario,
-                            c.fecha
+        // $this->db->select("comentarios.*,comentario_tipo.id as id_tipo_comentario,comentario_tipo.icono as tipo_comentario, u.nombre autor");
+        $query_sql = "SELECT 
+                        c.*,
+                        ct.id as id_tipo_comentario,
+                        ct.icono as tipo_comentario,
+                        usuarios.nombre autor
                     FROM
-                        comentarios c
+                        comentarios as c
                     INNER JOIN api a ON
                         a.id_cliente = c.id_cliente
                         AND c.cv = a.cv
