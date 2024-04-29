@@ -1,21 +1,17 @@
-The MIT License (MIT)
+Licencia de Software Propietario
 
-Copyright (c) 2019 - 2022, CodeIgniter Foundation
+Este software es propiedad exclusiva de DXT Logística SA de CV ("Propietario del Software"). Al recibir este software, usted ("Usuario del Software") acepta las siguientes condiciones:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. Derechos de Propiedad: El Usuario del Software reconoce y acepta que el software, incluyendo todo el código fuente, archivos binarios, documentación y cualquier otro material relacionado, es propiedad exclusiva de DXT Logística SA de CV. El Usuario del Software no adquiere ningún derecho de propiedad sobre el software, excepto los derechos de uso limitados expresamente otorgados en esta licencia.
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+2. Concesión de Licencia: DXT Logística SA de CV otorga al Usuario del Software una licencia no exclusiva, intransferible y revocable para utilizar el software con el único propósito de [describir el propósito del software, por ejemplo, "uso interno en la empresa" o "desarrollo de productos"]. Esta licencia no permite al Usuario del Software sublicenciar, copiar, modificar, distribuir o transferir el software, ni ninguna parte del mismo, sin el consentimiento previo y por escrito de DXT Logística SA de CV.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+3. Confidencialidad: El Usuario del Software deberá mantener en estricta confidencialidad el software y no revelar su contenido a terceros sin el consentimiento previo y por escrito de DXT Logística SA de CV. El Usuario del Software deberá tomar todas las medidas razonables para evitar la divulgación no autorizada del software.
+
+4. Sin Garantías: EL SOFTWARE SE PROPORCIONA "TAL CUAL" SIN GARANTÍA DE NINGÚN TIPO, YA SEA EXPRESA O IMPLÍCITA. DXT Logística SA de CV RENUNCIA EXPRESAMENTE A TODAS LAS GARANTÍAS, INCLUYENDO, PERO NO LIMITADO A, LAS GARANTÍAS IMPLÍCITAS DE COMERCIABILIDAD, IDONEIDAD PARA UN PROPÓSITO PARTICULAR Y NO INFRACCIÓN. DXT Logística SA de CV NO SERÁ RESPONSABLE DE NINGÚN DAÑO DIRECTO, INDIRECTO, INCIDENTAL, ESPECIAL, EJEMPLAR O CONSECUENCIAL QUE RESULTEN DEL USO O LA IMPOSIBILIDAD DE USAR EL SOFTWARE.
+
+5. Ley Aplicable: Este Acuerdo se regirá e interpretará de acuerdo con las leyes del Estado de [tu ubicación], sin tener en cuenta sus principios de conflictos de leyes.
+
+Esta licencia constituye el acuerdo completo entre el Propietario del Software y el Usuario del Software con respecto al uso del software y reemplaza todos los acuerdos y entendimientos anteriores o contemporáneos, ya sean escritos u orales, relacionados con dicho uso.
+
+Al utilizar este software, el Usuario del Software acepta estar sujeto a los términos y condiciones de esta licencia.
