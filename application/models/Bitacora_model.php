@@ -13,7 +13,8 @@ class Bitacora_model extends CI_Model
     public function getBitacora($cv)
     {
         //CASE WHEN bh.referencia is null THEN api.referencia_cliente WHEN bh.referencia is not null then bh.referencia ELSE '' END referencia
-        $encabezado = $this->db->query("SELECT bh.*,api.placas_tracto, api.placas_remolque, api.transportista_nombre_comercial,api.cliente_solicitud, api.cliente_nombre_corto,api.orig_dest_solicitud,CASE WHEN bh.referencia is null THEN api.referencia_cliente WHEN bh.referencia <> '' then bh.referencia ELSE api.referencia_cliente END referencia FROM bitacora_hd bh inner join api on api.cv = bh.cv  where api.cv = '$cv'")->row_array();
+        $encabezado = $this->db->query("SELECT bh.*,api.placas_tracto, api.placas_remolque, api.transportista_nombre_comercial,api.cliente_solicitud, api.cliente_nombre_corto,api.orig_dest_solicitud,api.referencia_cliente referencia,api.id_transportista FROM bitacora_hd bh inner join api on api.cv = bh.cv  where api.cv = '$cv'")
+            ->row_array();
         $sql = "SELECT bh.*,
         bl.*,
         u.nombre usuario_nombre,   (
@@ -24,7 +25,20 @@ class Bitacora_model extends CI_Model
         $query = $this->db->query($sql, [$cv]);
         $bitacora = $query->result_array();
 
-        return ["encabezado" => $encabezado, "movimientos" => $bitacora];
+
+        $queryContactos = $this->db->query("SELECT * FROM contactos_bitacora where cv = $cv")->result_array();
+        $contactos = $queryContactos;
+
+
+
+        return ["encabezado" => $encabezado, "movimientos" => $bitacora, "contactos" => $contactos];
+    }
+
+    public function getContactos($cv)
+    {
+        $queryContactos = $this->db->query("SELECT * FROM contactos_bitacora where cv = $cv")->result_array();
+        $contactos = $queryContactos;
+        return $contactos;
     }
 
 
@@ -107,7 +121,7 @@ class Bitacora_model extends CI_Model
         }
 
 
-        $sql = "SELECT `bh`.`cv`, `bh`.`ogs`, `a`.`referencia_cliente` `referencia`, `bh`.`unidad`, `bh`.`operador`,
+        $sql = "SELECT DISTINCT `bh`.`cv`, `bh`.`ogs`, `a`.`referencia_cliente` `referencia`, `bh`.`unidad`, `bh`.`operador`,
         `bh`.`placas`, `bh`.`cp_origen`, `bh`.`cp_destino`, `bh`.`origen_destino`, DATE_FORMAT(bh.fecha_carga, '%Y-%m-%d %H:%i')
         fecha_carga, DATE_FORMAT(bh.fecha_descarga, '%Y-%m-%d %H:%i') fecha_descarga, DATE_FORMAT(bh.fecha_posicion, '%Y-%m%-%d
         %H:%i') fecha_posicion, DATE_FORMAT(bh.fecha_salida_carga, '%Y-%m%-%d %H:%i') fecha_salida_carga,
@@ -126,11 +140,14 @@ class Bitacora_model extends CI_Model
 
         if (validarRol($rolesUsuario, ["Agente de cuenta"])) {
             $sql .= " AND e.id_sac = '$usuarioID' ";
+        } else if (validarRol($rolesUsuario, ["Monitoreo", "Admin"])) {
+            $sql .= "";
         } else {
             $sql .= " AND 1=0";
         }
 
         $sql .= " ORDER BY a.fecha_carga_ci ASC";
+
         $query = $this->db->query($sql);
         $bitacora = $query->result_array();
         return $bitacora;
@@ -161,5 +178,27 @@ class Bitacora_model extends CI_Model
             default:
                 return "";
         }
+    }
+
+    public function updateCuentaEspejo($cv, $cuentaEspejo)
+    {
+        $this->db->where("cv", $cv);
+        $this->db->update("bitacora_hd", $cuentaEspejo);
+
+        return $this->db->affected_rows();
+    }
+
+    public function saveContacto($cv, $data)
+    {
+        if (isset($data["id"]) && $data["id"] != null) {
+            $this->db->where("id", $data["id"]);
+            $this->db->update("contactos_bitacora", $data);
+            return $data["id"];
+        } else {
+            $data["cv"] = $cv;
+            $this->db->insert("contactos_bitacora", $data);
+            return $this->db->insert_id();
+        }
+        return $this->db->insert_id();
     }
 }

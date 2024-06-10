@@ -45,6 +45,19 @@ class Bitacora extends CI_Controller
         $this->responder(false, "",  $bitacora, 200);
     }
 
+    public function updateCuentaEspejo($cv)
+    {
+        $this->load->model("Bitacora_model");
+
+        if ($this->body["cuenta_espejo_url"] == "") {
+            $this->responder(true, "Debes enviar una cuenta espejo", null, 400);
+        }
+
+
+        $this->Bitacora_model->updateCuentaEspejo($cv, $this->body);
+        $this->responder(false, "",  null, 200);
+    }
+
     public function getCvsActivos()
     {
         $this->load->model('Usuario_model');
@@ -68,7 +81,9 @@ class Bitacora extends CI_Controller
             $planner = $usuario["usuario_rainde"];
         }
 
+
         $bitacora = $this->Bitacora_model->getBitacoraMovimientosActivos($usuario["roles"], $usuario["id"], $planner);
+
         $this->responder(false, "",  $bitacora, 200);
     }
 
@@ -375,5 +390,14 @@ class Bitacora extends CI_Controller
         } else {
             return false;
         }
+    }
+
+    public function saveContacto($cv)
+    {
+        $this->load->model("Bitacora_model");
+        $this->Bitacora_model->saveContacto($cv, $this->body);
+
+        $contactos = $this->Bitacora_model->getContactos($cv);
+        $this->responder(false, "",   $contactos, 200);
     }
 }
