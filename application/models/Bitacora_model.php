@@ -140,7 +140,7 @@ class Bitacora_model extends CI_Model
 
         if (validarRol($rolesUsuario, ["Agente de cuenta"])) {
             $sql .= " AND e.id_sac = '$usuarioID' ";
-        } else if (validarRol($rolesUsuario, ["Monitoreo"])) {
+        } else if (validarRol($rolesUsuario, ["Monitoreo", "Admin"])) {
             $sql .= "";
         } else {
             $sql .= " AND 1=0";
