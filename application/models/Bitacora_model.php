@@ -160,21 +160,21 @@ class Bitacora_model extends CI_Model
             case 2:
                 return "Tránsito a cargar";
             case 3:
-                return "En punto de carga";
+                return "Unidad en origen";
             case 4:
-                return "En posición de carga";
+                return "Unidad en rampa - en origen";
             case 5:
                 return "Salida de Punto de Carga";
             case 6:
                 return "En Tránsito";
             case 7:
-                return "En punto de descarga";
+                return "Unidad en destino";
             case 8:
                 return "Descargada";
             case 9:
-                return "Acuerdo de Llegada a Cargar";
+                return "Unidad en rampa - en destino";
             case 10:
-                return "Cancelado";
+                return "Acuerdo de Llegada a Cargar";
             default:
                 return "";
         }
