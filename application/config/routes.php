@@ -21,6 +21,8 @@ $route["bitacora/saveContacto/(:any)"] = "Bitacora/saveContacto/$1";
 $route["getCvsActivos"] = "Bitacora/getCvsActivos";
 $route["getCvsActivosTest"] = "Bitacora/getCvsActivosTest";
 $route["generarCvOnePage/(:any)"] = "Bitacora/generarCvOnePage/$1";
+// indicadores
+$route["indicadoresPlanner/(:any)"] = "Indicadores/getIndicadoresPlanner/$1";
 
 $route["solicitarCostos"] = "Cotizaciones/solicitarCostos";
 $route["solicitarCostosToggle"] = "Cotizaciones/solicitarCostosToggle";
