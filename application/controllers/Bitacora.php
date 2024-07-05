@@ -296,6 +296,24 @@ class Bitacora extends CI_Controller
         $this->responder(false, "",  $id_ln, 200);
     }
 
+    public function getCvsActivo($usuario_id){
+        $this->load->model('Usuario_model');
+        $usuario = $this->Usuario_model->getUsuario($usuario_id);
+        $roles = $usuario["roles"];
+        $usuario_rainde = $usuario["usuario_rainde"];
+        $cvsActivos = $this->Bitacora_model->getCvsActivos($roles, $usuario_rainde);
+
+        $this->responder(false, "success", $cvsActivos, 200);
+    }
+
+    public function cvsPendientes($usuario_id){
+        $this->load->model('Usuario_model');
+        $usuario = $this->Usuario_model->getUsuario($usuario_id);
+        $roles = $usuario["roles"];
+        $usuario_rainde = $usuario["usuario_rainde"];
+        $cvsPendientes = $this->Bitacora_model->getCvsPendientes($roles, $usuario_rainde);
+        $this->responder(false, "success", $cvsPendientes, 200);
+    }
 
     private function carga_achivo($file, $carpeta, $permitidos = '')
     {

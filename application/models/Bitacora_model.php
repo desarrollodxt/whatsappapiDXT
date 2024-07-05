@@ -201,4 +201,52 @@ class Bitacora_model extends CI_Model
         }
         return $this->db->insert_id();
     }
+
+    public function getCvsActivos($roles, $usuario_rainde)
+    {
+
+
+        $condicion = "";
+
+        if (validarRol($roles, ["Agente de cuenta"])) {
+            $condicion = " WHERE a.vendedor = '$usuario_rainde' ";
+        } else if (validarRol($roles, ["Planner"])) {
+            $condicion = " WHERE a.user_add_cv = '$usuario_rainde' ";
+        }
+
+
+        $sql =   "SELECT bh.* , 
+        a.referencia_cliente referencia,
+        a.cv,a.transportista_nombre_comercial proveedor,left(a.cliente_nombre_corto, 12) cliente,a.orig_dest_solicitud ruta,a.user_mod_cv planner, bl.*
+        FROM bitacora_hd bh inner join api a on a.cv = bh.cv
+        inner join  (SELECT bln.id_bitacora_hd, bln.ubicacion, bln.estatus, bln.observacion,bln.coordenadas, bln.created_at, bln.fecha_creacion, bln.estatus_nombre
+                FROM bitacora_ln AS bln
+                INNER JOIN (
+                SELECT id_bitacora_hd, MAX(created_at) AS ultima_fecha
+                FROM bitacora_ln
+                GROUP BY id_bitacora_hd
+                ) AS max_fecha
+                 ON bln.id_bitacora_hd = max_fecha.id_bitacora_hd AND bln.created_at = max_fecha.ultima_fecha
+                 where estatus in (1,2,3,4,5,6,7,9)) bl on bl.id_bitacora_hd = bh.id $condicion ORDER BY bh.fecha_carga ASC";
+
+        $query = $this->db->query($sql);
+        $bitacora = $query->result_array();
+        return $bitacora;
+    }
+
+    public function getCvsPendientes($roles, $usuario_rainde)
+    {
+        $sql = "SELECT LEFT(fecha_add,10) as fecha_add,
+                user_add as vend, ogs, estatus_ogs, left(fecha_carga_solicitud,10) as fecha,
+                orig_dest_loc_solicitud as ruta,
+                cliente_nombre_corto AS cliente,
+                e.id id_entidad
+                FROM api 
+                left join entidades e on e.id_rainder= api.id_cliente  and e.tipo_entidad = 1
+                WHERE DATE_ADD(LEFT(fecha_carga_solicitud,10), INTERVAL 4 DAY)>now() and CV<1 and estatus_ogs<>'RECHAZADA'
+                ORDER BY fecha_ogs DESC";
+        $query = $this->db->query($sql);
+        $bitacora = $query->result_array();
+        return $bitacora;
+    }
 }

@@ -21,6 +21,10 @@ $route["bitacora/saveContacto/(:any)"] = "Bitacora/saveContacto/$1";
 $route["getCvsActivos"] = "Bitacora/getCvsActivos";
 $route["getCvsActivosTest"] = "Bitacora/getCvsActivosTest";
 $route["generarCvOnePage/(:any)"] = "Bitacora/generarCvOnePage/$1";
+$route["metricas/(:any)/(:any)/(:any)"] = "Dashboard/metricas/$1/$2/$3";
+// indicadores
+$route["indicadoresPlanner/(:any)"] = "Indicadores/getIndicadoresPlanner/$1";
+$route["detalleMetrica/(:any)/(:any)"] = "Indicadores/detalleMetrica/$1/$2";
 
 $route["solicitarCostos"] = "Cotizaciones/solicitarCostos";
 $route["solicitarCostosToggle"] = "Cotizaciones/solicitarCostosToggle";
@@ -62,6 +66,9 @@ $route["uploadProfilePictura"] = "CRM/uploadProfilePictura";
 $route["getComentariosfc"] = "Cuentasporcobrar/getComentariosfc";
 $route["sendComentariofc"] = "Cuentasporcobrar/sendComentariofc";
 // AJAX
+
+$route["getCvsActivos/(:any)"] = "Bitacora/getCvsActivo/$1";
+$route["cvsPendientes/(:any)"] = "Bitacora/cvsPendientes/$1";
 
 // api
 $route["whatsapp/getChats"] = "Whatsapp/getChats";
