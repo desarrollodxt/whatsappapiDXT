@@ -92,6 +92,9 @@ class Indicadores extends CI_Controller
             case 'proveedoresActivos':
                 $data = $this->Indicadores_model->getProveedoresActivosPausadosPerdidosPUsuarioDetalle($usuario_rainde,$roles);
                 break;
+            case 'comisiones':
+                $data = $this->Indicadores_model->getComisionesPUsuarioDetalle($usuario_rainde,$roles);
+                break;
             default:
                 $this->responder(true, "Metrica no encontrada", null, 404);                
                 break;

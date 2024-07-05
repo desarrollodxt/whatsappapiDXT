@@ -327,13 +327,20 @@ class Indicadores_model extends CI_Model
     {
         $condicion = "";
         if (in_array("Planner", $roles)) {
-            $condicion = "and a.user_autoriza = '$usuario_rainde'";
+            $condicion = "AND a.user_autoriza = '$usuario_rainde'";
         } else {
-            $condicion = "and a.vendedor = '$usuario_rainde'";
+            $condicion = "AND a.vendedor = '$usuario_rainde'";
         }
-        $query = $this->db->query("SELECT 
-            SUM(sub_fact_dxt)*(SUM(importe_cobrado_dxt)/SUM(tot_fact_dxt))*(SUM(utilidad)/SUM(vta_total_autorizada))*tipo_de_cambio recuperacion 
-            from api a where year(fecha_cobro_dxt)*100+month(fecha_cobro_dxt)=year(now())*100+month(now()) and estatus_cv = 'ACTIVO' $condicion");
+        $query = $this->db->query("SELECT a.cv,fecha_carga_ci, a.cliente_nombre_corto cliente, a.transportista_nombre_comercial proveedor,
+                (sub_fact_dxt)*((importe_cobrado_dxt)/(tot_fact_dxt))*((utilidad)/(vta_total_autorizada))*tipo_de_cambio recuperacion,
+                ((sub_fact_dxt)*((importe_cobrado_dxt)/(tot_fact_dxt))*((utilidad)/(vta_total_autorizada))*tipo_de_cambio)*.035 comision
+                from api a where year(fecha_cobro_dxt)*100+month(fecha_cobro_dxt)=year(now())*100+month(now()) and estatus_cv = 'ACTIVO' $condicion");
+        $result = $query->result_array();
+        $data = [
+            "datos" => $result,
+            "header" => explode(",", "cv, fecha carga,cliente,proveedor,profit,comision")
+        ];
+        return $data;
     }
 
 
