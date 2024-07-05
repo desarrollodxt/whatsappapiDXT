@@ -13,7 +13,7 @@ class Bitacora_model extends CI_Model
     public function getBitacora($cv)
     {
         //CASE WHEN bh.referencia is null THEN api.referencia_cliente WHEN bh.referencia is not null then bh.referencia ELSE '' END referencia
-        $encabezado = $this->db->query("SELECT bh.*,api.placas_tracto, api.placas_remolque, api.transportista_nombre_comercial,api.cliente_solicitud, api.cliente_nombre_corto,api.orig_dest_solicitud,api.referencia_cliente referencia,api.id_transportista FROM bitacora_hd bh inner join api on api.cv = bh.cv  where api.cv = '$cv'")
+        $encabezado = $this->db->query("SELECT bh.*,api.placas_tracto,api.direccion_origen,api.direccion_destino, api.placas_remolque, api.transportista_nombre_comercial,api.cliente_solicitud,api.observaciones, api.cliente_nombre_corto,api.orig_dest_solicitud,api.referencia_cliente referencia,api.id_transportista FROM bitacora_hd bh inner join api on api.cv = bh.cv  where api.cv = '$cv'")
             ->row_array();
         $sql = "SELECT bh.*,
         bl.*,
@@ -136,7 +136,7 @@ class Bitacora_model extends CI_Model
         inner join bitacora_hd bh on bl.id_bitacora_hd = bh.id
         inner join api a on a.cv = bh.cv 
         left join entidades e on e.id_rainder = a.id_cliente and e.tipo_entidad = 1
-        where bl.estatus in (1,2,3,4,5,6,7,8,9) AND `a`.`fecha_descarga_cv` > DATE_SUB(now(), INTERVAL 10 day)";
+        where bl.estatus in (1,2,3,4,5,6,7,8,9,10) AND `a`.`fecha_descarga_cv` > DATE_SUB(now(), INTERVAL 10 day)";
 
         if (validarRol($rolesUsuario, ["Agente de cuenta"])) {
             $sql .= " AND e.id_sac = '$usuarioID' ";
@@ -160,21 +160,21 @@ class Bitacora_model extends CI_Model
             case 2:
                 return "Tránsito a cargar";
             case 3:
-                return "En punto de carga";
+                return "Unidad en origen";
             case 4:
-                return "En posición de carga";
+                return "Unidad en rampa - en origen";
             case 5:
                 return "Salida de Punto de Carga";
             case 6:
                 return "En Tránsito";
             case 7:
-                return "En punto de descarga";
+                return "Unidad en destino";
             case 8:
                 return "Descargada";
             case 9:
-                return "Acuerdo de Llegada a Cargar";
+                return "Unidad en rampa - en destino";
             case 10:
-                return "Cancelado";
+                return "Acuerdo de Llegada a Cargar";
             default:
                 return "";
         }
@@ -200,5 +200,53 @@ class Bitacora_model extends CI_Model
             return $this->db->insert_id();
         }
         return $this->db->insert_id();
+    }
+
+    public function getCvsActivos($roles, $usuario_rainde)
+    {
+
+
+        $condicion = "";
+
+        if (validarRol($roles, ["Agente de cuenta"])) {
+            $condicion = " WHERE a.vendedor = '$usuario_rainde' ";
+        } else if (validarRol($roles, ["Planner"])) {
+            $condicion = " WHERE a.user_add_cv = '$usuario_rainde' ";
+        }
+
+
+        $sql =   "SELECT bh.* , 
+        a.referencia_cliente referencia,
+        a.cv,a.transportista_nombre_comercial proveedor,left(a.cliente_nombre_corto, 12) cliente,a.orig_dest_solicitud ruta,a.user_mod_cv planner, bl.*
+        FROM bitacora_hd bh inner join api a on a.cv = bh.cv
+        inner join  (SELECT bln.id_bitacora_hd, bln.ubicacion, bln.estatus, bln.observacion,bln.coordenadas, bln.created_at, bln.fecha_creacion, bln.estatus_nombre
+                FROM bitacora_ln AS bln
+                INNER JOIN (
+                SELECT id_bitacora_hd, MAX(created_at) AS ultima_fecha
+                FROM bitacora_ln
+                GROUP BY id_bitacora_hd
+                ) AS max_fecha
+                 ON bln.id_bitacora_hd = max_fecha.id_bitacora_hd AND bln.created_at = max_fecha.ultima_fecha
+                 where estatus in (1,2,3,4,5,6,7,9)) bl on bl.id_bitacora_hd = bh.id $condicion ORDER BY bh.fecha_carga ASC";
+
+        $query = $this->db->query($sql);
+        $bitacora = $query->result_array();
+        return $bitacora;
+    }
+
+    public function getCvsPendientes($roles, $usuario_rainde)
+    {
+        $sql = "SELECT LEFT(fecha_add,10) as fecha_add,
+                user_add as vend, ogs, estatus_ogs, left(fecha_carga_solicitud,10) as fecha,
+                orig_dest_loc_solicitud as ruta,
+                cliente_nombre_corto AS cliente,
+                e.id id_entidad
+                FROM api 
+                left join entidades e on e.id_rainder= api.id_cliente  and e.tipo_entidad = 1
+                WHERE DATE_ADD(LEFT(fecha_carga_solicitud,10), INTERVAL 4 DAY)>now() and CV<1 and estatus_ogs<>'RECHAZADA'
+                ORDER BY fecha_ogs DESC";
+        $query = $this->db->query($sql);
+        $bitacora = $query->result_array();
+        return $bitacora;
     }
 }
