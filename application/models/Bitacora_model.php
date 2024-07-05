@@ -13,7 +13,7 @@ class Bitacora_model extends CI_Model
     public function getBitacora($cv)
     {
         //CASE WHEN bh.referencia is null THEN api.referencia_cliente WHEN bh.referencia is not null then bh.referencia ELSE '' END referencia
-        $encabezado = $this->db->query("SELECT bh.*,api.placas_tracto, api.placas_remolque, api.transportista_nombre_comercial,api.cliente_solicitud, api.cliente_nombre_corto,api.orig_dest_solicitud,api.referencia_cliente referencia,api.id_transportista FROM bitacora_hd bh inner join api on api.cv = bh.cv  where api.cv = '$cv'")
+        $encabezado = $this->db->query("SELECT bh.*,api.placas_tracto,api.direccion_origen,api.direccion_destino, api.placas_remolque, api.transportista_nombre_comercial,api.cliente_solicitud,api.observaciones, api.cliente_nombre_corto,api.orig_dest_solicitud,api.referencia_cliente referencia,api.id_transportista FROM bitacora_hd bh inner join api on api.cv = bh.cv  where api.cv = '$cv'")
             ->row_array();
         $sql = "SELECT bh.*,
         bl.*,
@@ -136,7 +136,7 @@ class Bitacora_model extends CI_Model
         inner join bitacora_hd bh on bl.id_bitacora_hd = bh.id
         inner join api a on a.cv = bh.cv 
         left join entidades e on e.id_rainder = a.id_cliente and e.tipo_entidad = 1
-        where bl.estatus in (1,2,3,4,5,6,7,8,9) AND `a`.`fecha_descarga_cv` > DATE_SUB(now(), INTERVAL 10 day)";
+        where bl.estatus in (1,2,3,4,5,6,7,8,9,10) AND `a`.`fecha_descarga_cv` > DATE_SUB(now(), INTERVAL 10 day)";
 
         if (validarRol($rolesUsuario, ["Agente de cuenta"])) {
             $sql .= " AND e.id_sac = '$usuarioID' ";
