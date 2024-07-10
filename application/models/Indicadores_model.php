@@ -16,7 +16,7 @@ class Indicadores_model extends CI_Model
         if (in_array("Planner", $roles)) {
             $condicion = "and a.user_autoriza = '$usuario_rainde'";
         } else {
-            $condicion = "and a.vendedor = '$usuario_rainde'";
+            $condicion = "and a.user_add = '$usuario_rainde'";
         }
         $query = $this->db->query("select sum(utilidad*tipo_de_cambio) profit from api a where year(a.fecha_carga_ci)*100+month(a.fecha_carga_ci) = year(now())*100+month(now()) and estatus_cv = 'ACTIVO' $condicion");
         $result = $query->row_array();
@@ -29,7 +29,7 @@ class Indicadores_model extends CI_Model
         if (in_array("Planner", $roles)) {
             $condicion = "and a.user_autoriza = '$usuario_rainde'";
         } else {
-            $condicion = "and a.vendedor = '$usuario_rainde'";
+            $condicion = "and a.user_add = '$usuario_rainde'";
         }
         $query = $this->db->query("select (sum(utilidad)/sum(vta_total_autorizada))*tipo_de_cambio pMargen from api a where year(a.fecha_carga_ci)*100+month(a.fecha_carga_ci) = year(now())*100+month(now()) and estatus_cv = 'ACTIVO' $condicion");
         $result = $query->row_array();
@@ -44,7 +44,7 @@ class Indicadores_model extends CI_Model
         if (in_array("Planner", $roles)) {
             $condicion = "and a.user_autoriza = '$usuario_rainde'";
         } else {
-            $condicion = "and a.vendedor = '$usuario_rainde'";
+            $condicion = "and a.user_add = '$usuario_rainde'";
         }
         $query = $this->db->query("SELECT SUM(sub_fact_dxt)*		
             (SUM(importe_cobrado_dxt)/SUM(tot_fact_dxt))*
@@ -88,12 +88,11 @@ class Indicadores_model extends CI_Model
             return 0;
         }
 
-        if($objetivo_a_dia_hoy == 0){
+        if ($objetivo_a_dia_hoy == 0) {
             return 0;
         }
 
         return (floatval($profit) / floatval($objetivo_a_dia_hoy)) * 100;
-
     }
     public function getCumplimientoMetaPUsuario($usuario_rainde, $roles)
     {
@@ -102,6 +101,12 @@ class Indicadores_model extends CI_Model
             $condicion = "and a.user_autoriza = '$usuario_rainde'";
             $tipoObjetvio = "COMPRA";
         } else {
+            $query = "SELECT rainde_nombre from usuarios where usuario_rainde = '$usuario_rainde'";
+            $result = $this->db->query($query)->row_array();
+
+            $nombre_rainde = $result["rainde_nombre"];
+
+            $usuario_rainde = $nombre_rainde;
             $condicion = "and a.vendedor = '$usuario_rainde'";
             $tipoObjetvio = "VENTA";
         }
@@ -137,6 +142,11 @@ class Indicadores_model extends CI_Model
                 $objetivo_a_dia_hoy += $row["objetivodia"];
             }
         }
+
+        if ($objetivo_a_dia_hoy == 0) {
+            return 0;
+        }
+
 
 
         return (floatval($profit) / floatval($objetivo_a_dia_hoy)) * 100;
@@ -191,7 +201,7 @@ class Indicadores_model extends CI_Model
         if (in_array("Planner", $roles)) {
             $condicion = "and user_autoriza = '$usuario_rainde'";
         } else {
-            $condicion = "and vendedor = '$usuario_rainde'";
+            $condicion = "and user_add = '$usuario_rainde'";
         }
         $query = $this->db->query("SELECT api.cv, 
                                     LEFT(api.fecha_carga_ci,10) AS fecha_cv,
@@ -222,7 +232,7 @@ class Indicadores_model extends CI_Model
         if (in_array("Planner", $roles)) {
             $condicion = "and a.user_autoriza = '$usuario_rainde'";
         } else {
-            $condicion = "and a.vendedor = '$usuario_rainde'";
+            $condicion = "and a.user_add = '$usuario_rainde'";
         }
         $query = $this->db->query("select a.id,a.fecha_carga_ci,a.cliente_nombre_corto,a.vta_total_autorizada,a.utilidad,a.tipo_de_cambio from api a where year(a.fecha_carga_ci)*100+month(a.fecha_carga_ci) = year(now())*100+month(now()) and estatus_cv = 'ACTIVO' $condicion");
         $result = $query->result_array();
@@ -233,9 +243,9 @@ class Indicadores_model extends CI_Model
     {
         $condicion = "";
         if (in_array("Planner", $roles)) {
-            $condicion = "and a.user_autoriza = '$usuario_rainde'";
+            $condicion = "and user_autoriza = '$usuario_rainde'";
         } else {
-            $condicion = "and a.vendedor = '$usuario_rainde'";
+            $condicion = "and user_add = '$usuario_rainde'";
         }
         $query = $this->db->query("SELECT
                                 `cliente_nombre_corto`,
@@ -248,7 +258,8 @@ class Indicadores_model extends CI_Model
                                 10),
                                 datediff(left(`fecha_cobro_dxt`, 10), left(`fecha_fact_dxt`, 10)) as DiasFactura,
                                 `fact_dxt`,
-                                `tot_fact_dxt`,
+                                FORMAT(`tot_fact_dxt`,2),
+                                FORMAT(utilidad*tipo_de_cambio,2),
                                 left(`fecha_cobro_dxt`,
                                 10),
                                 `saldo_x_cobrar`
@@ -258,13 +269,13 @@ class Indicadores_model extends CI_Model
                                 `estatus_cv` = 'ACTIVO'
                                 AND `saldo_x_cobrar` = 0
                                 and `fact_dxt` <> '-1'
-                                and api.user_autoriza = '$usuario_rainde'
+                                $condicion
                                 and YEAR(api.fecha_cobro_dxt)*100 + MONTH(api.fecha_cobro_dxt) = YEAR(now())*100 + MONTH(now())");
         $result = $query->result_array();
 
         $data = [
             "datos" => $result,
-            "header" => explode(",", "cliente_nombre_corto,cliente_cv,cv,fecha_carga_ci,DiasServicio,fecha_fact_dxt,DiasFactura,fact_dxt,tot_fact_dxt,fecha_cobro_dxt,saldo_x_cobrar")
+            "header" => explode(",", "cliente_nombre_corto,cliente_cv,cv,fecha_carga_ci,DiasServicio,fecha_fact_dxt,DiasFactura,fact_dxt,tot_fact_dxt, profit ,fecha_cobro_dxt,saldo_x_cobrar")
         ];
         return $data;
     }
@@ -307,33 +318,107 @@ class Indicadores_model extends CI_Model
         return $data;
     }
 
-    public function getComisionesPUsuario($usuario_rainde, $roles)
+    public function getComisionesPUsuario($usuario_rainde, $roles, $metaPersonal = null, $metaGlobal = null)
     {
         $condicion = "";
         if (in_array("Planner", $roles)) {
             $condicion = "and a.user_autoriza = '$usuario_rainde'";
-        } else {
-            $condicion = "and a.vendedor = '$usuario_rainde'";
-        }
-        $query = $this->db->query("SELECT SUM(sub_fact_dxt)*		
+            $query = $this->db->query("SELECT SUM(sub_fact_dxt)*		
             (SUM(importe_cobrado_dxt)/SUM(tot_fact_dxt))*
             (SUM(utilidad)/SUM(vta_total_autorizada))*tipo_de_cambio recuperacion from api a where year(fecha_cobro_dxt)*100 + month(fecha_cobro_dxt) = year(now())*100+month(now()) and estatus_cv = 'ACTIVO' $condicion");
-        $result = $query->row_array();
-        return $result["recuperacion"] * .035 ?? 0;
+            $result = $query->row_array();
+            return $result["recuperacion"] * .035 ?? 0;
+        } else {
+            $comision = 0;
+            $condicion = "and a.user_add = '$usuario_rainde'";
+            $query = $this->db->query("SELECT SUM(sub_fact_dxt)*		
+            (SUM(importe_cobrado_dxt)/SUM(tot_fact_dxt))*
+            (SUM(utilidad)/SUM(vta_total_autorizada))*tipo_de_cambio recuperacion from api a where year(fecha_cobro_dxt)*100 + month(fecha_cobro_dxt) = year(now())*100+month(now()) and estatus_cv = 'ACTIVO' $condicion");
+            $result = $query->row_array();
+            $profit = $result["recuperacion"] ?? 0;
+
+            // Definimos la matriz de comisiones según las condiciones
+            $comisiones = [
+                '70-79' => ['70-79' => 1.0, '80-89' => 1.5, '90-91' => 2.0, '100-109' => 2.5, '>110' => 4.0],
+                '80-89' => ['70-79' => 1.3, '80-89' => 1.8, '90-91' => 2.3, '100-109' => 2.8, '>110' => 4.3],
+                '90-99' => ['70-79' => 1.5, '80-89' => 2.0, '90-91' => 2.5, '100-109' => 3.0, '>110' => 4.5],
+                '100-109' => ['70-79' => 2.0, '80-89' => 2.5, '90-91' => 3.0, '100-109' => 3.5, '>110' => 5.0],
+                '>110' => ['70-79' => 2.5, '80-89' => 3.0, '90-91' => 3.5, '100-109' => 4.0, '>110' => 5.5]
+            ];
+
+            // Función auxiliar para determinar el rango
+            function obtener_rango($valor)
+            {
+                if ($valor >= 70 && $valor < 80) return '70-79';
+                if ($valor >= 80 && $valor < 90) return '80-89';
+                if ($valor >= 90 && $valor < 100) return '90-99';
+                if ($valor >= 100 && $valor < 110) return '100-109';
+                if ($valor >= 110) return '>110';
+                return null; // Si el valor está fuera del rango esperado
+            }
+
+            // Obtener los rangos correspondientes
+            $rango_personal = obtener_rango($metaPersonal);
+            $rango_global = obtener_rango($metaGlobal);
+
+            if ($rango_personal && $rango_global) {
+                // Calcular la comisión en base a los rangos
+                $tasa_comision = $comisiones[$rango_global][$rango_personal] / 100; // Convertimos a porcentaje
+                $comision = $profit * $tasa_comision;
+            }
+
+            return $comision;
+        }
     }
 
 
     public function getComisionesPUsuarioDetalle($usuario_rainde, $roles)
     {
         $condicion = "";
+        $tasaComision = 0;
         if (in_array("Planner", $roles)) {
             $condicion = "AND a.user_autoriza = '$usuario_rainde'";
+            $tasaComision = floatval(0.035);
         } else {
-            $condicion = "AND a.vendedor = '$usuario_rainde'";
+            $condicion = "AND a.user_add = '$usuario_rainde'";
+            $tasaComision = 0;
+
+            $metaPersonal = $this->getCumplimientoMetaPUsuario($usuario_rainde, $roles);
+            $metaGlobal = $this->getobjetivoGlobalProfit();
+
+            // Definimos la matriz de comisiones según las condiciones
+            $comisiones = [
+                '70-79' => ['70-79' => 1.0, '80-89' => 1.5, '90-91' => 2.0, '100-109' => 2.5, '>110' => 4.0],
+                '80-89' => ['70-79' => 1.3, '80-89' => 1.8, '90-91' => 2.3, '100-109' => 2.8, '>110' => 4.3],
+                '90-99' => ['70-79' => 1.5, '80-89' => 2.0, '90-91' => 2.5, '100-109' => 3.0, '>110' => 4.5],
+                '100-109' => ['70-79' => 2.0, '80-89' => 2.5, '90-91' => 3.0, '100-109' => 3.5, '>110' => 5.0],
+                '>110' => ['70-79' => 2.5, '80-89' => 3.0, '90-91' => 3.5, '100-109' => 4.0, '>110' => 5.5]
+            ];
+
+            // Función auxiliar para determinar el rango
+            function obtener_rango($valor)
+            {
+                if ($valor >= 70 && $valor < 80) return '70-79';
+                if ($valor >= 80 && $valor < 90) return '80-89';
+                if ($valor >= 90 && $valor < 100) return '90-99';
+                if ($valor >= 100 && $valor < 110) return '100-109';
+                if ($valor >= 110) return '>110';
+                return null; // Si el valor está fuera del rango esperado
+            }
+
+            // Obtener los rangos correspondientes
+            $rango_personal = obtener_rango($metaPersonal);
+            $rango_global = obtener_rango($metaGlobal);
+
+            if ($rango_personal && $rango_global) {
+                // Calcular la comisión en base a los rangos
+                $tasaComision = $comisiones[$rango_global][$rango_personal] / 100; // Convertimos a porcentaje
+            }
         }
+
         $query = $this->db->query("SELECT a.cv,fecha_carga_ci, a.cliente_nombre_corto cliente, a.transportista_nombre_comercial proveedor,
-                (sub_fact_dxt)*((importe_cobrado_dxt)/(tot_fact_dxt))*((utilidad)/(vta_total_autorizada))*tipo_de_cambio recuperacion,
-                ((sub_fact_dxt)*((importe_cobrado_dxt)/(tot_fact_dxt))*((utilidad)/(vta_total_autorizada))*tipo_de_cambio)*.035 comision
+                format((sub_fact_dxt)*((importe_cobrado_dxt)/(tot_fact_dxt))*((utilidad)/(vta_total_autorizada))*tipo_de_cambio,2) recuperacion,
+                ((sub_fact_dxt)*((importe_cobrado_dxt)/(tot_fact_dxt))*((utilidad)/(vta_total_autorizada))*tipo_de_cambio)*$tasaComision comision
                 from api a where year(fecha_cobro_dxt)*100+month(fecha_cobro_dxt)=year(now())*100+month(now()) and estatus_cv = 'ACTIVO' $condicion");
         $result = $query->result_array();
         $data = [
@@ -353,5 +438,77 @@ class Indicadores_model extends CI_Model
             "labels" => $labels,
             "data" => $datos
         ];
+    }
+
+
+    public function getCarteraPUsuario($usuario_rainde, $roles)
+    {
+        if (in_array("Planner", $roles)) {
+            $condicion = "and user_autoriza = '$usuario_rainde'";
+        } else {
+            $condicion = "and user_add = '$usuario_rainde'";
+        }
+
+        $sql = "SELECT  
+                SUM(case when (DATEDIFF(NOW(), fecha_fact_dxt)>60) then saldo_x_cobrar end)/1000 as carteraVencida
+                FROM api 
+                WHERE saldo_x_cobrar<>0 $condicion";
+
+        $query = $this->db->query($sql);
+        $result = $query->row_array();
+        return $result["carteraVencida"] ?? 0;
+    }
+
+    public function getClientesActivos($usuario_rainde, $roles)
+    {
+        $condicion = "";
+
+        $query = $this->db->query("SELECT 
+                                        SUM(CASE WHEN max_fecha_carga_ci < DATE_SUB(NOW(), INTERVAL 90 DAY) THEN 1 ELSE 0 END) AS perdidos,
+                                        SUM(CASE WHEN max_fecha_carga_ci BETWEEN DATE_SUB(NOW(), INTERVAL 60 DAY) AND DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS pausados,
+                                        SUM(CASE WHEN max_fecha_carga_ci >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS activos
+                                    FROM (
+                                        SELECT a.id_cliente, MAX(a.fecha_carga_ci) AS max_fecha_carga_ci
+                                        FROM api a
+                                        WHERE a.user_add ='$usuario_rainde'
+                                        GROUP BY a.id_cliente
+                                    ) subquery");
+        $result = $query->row_array();
+        return $result;
+    }
+
+    public function getClientesActivosPUsuarioDetalle($usuario_rainde, $roles)
+    {
+
+        $query = $this->db->query("SELECT cliente_nombre_corto,ultimo_viaje, TIMESTAMPDIFF(month,ultimo_viaje,now())meses_ultimo_viaje from (SELECt a.cliente_nombre_corto, MAX(a.fecha_carga_ci) AS ultimo_viaje FROM api a where a.user_add ='$usuario_rainde' AND estatus_cv = 'ACTIVO' AND estatus_ogs = 'AUTORIZADA' GROUP BY a.id_cliente) as rutas order by TIMESTAMPDIFF(month,ultimo_viaje,now())");
+        $result = $query->result_array();
+        $data = [
+            "datos" => $result,
+            "header" => explode(",", "Cliente,ultimo_viaje,meses_ultimo_viaje")
+        ];
+        return $data;
+    }
+
+    public function getCarteraPUsuarioDetalle($usuario_rainde, $roles)
+    {
+        $query = "SELECT CONCAT (\"<a href='visorpdf.php?a=1&id=\",api.id_cliente,\"'> <i class='fas fa-file-pdf' style='color: #ff0000;'></i> </a><a href='visorpdf.php?id=\",api.id_cliente,\"'> \", cliente_cv,\"</a>\") as cliente_cv,
+                        MAX(dias_fac_dxt) AS dias,
+                        vendedor,
+                        FORMAT(SUM(case when (DATEDIFF(NOW(), fecha_fact_dxt)>60) then saldo_x_cobrar end),2 ) as venc,
+                        FORMAT(SUM(case when ((DATEDIFF(NOW(), fecha_fact_dxt)>30) AND (DATEDIFF(NOW(), fecha_fact_dxt)<=60)) then saldo_x_cobrar end),2 ) as xven,
+                        FORMAT(SUM(case when (DATEDIFF(NOW(), fecha_fact_dxt)<=30) then saldo_x_cobrar end),2 ) as corr,
+                        FORMAT(SUM(saldo_x_cobrar),2)  AS tot
+                        FROM api 
+                        WHERE saldo_x_cobrar<>0 AND user_add = '$usuario_rainde'
+                        GROUP BY cliente_cv  
+                    ORDER BY `dias`  DESC";
+        $query = $this->db->query($query);
+        $result = $query->result_array();
+        $data = [
+            "datos" => $result,
+            "header" => explode(",", "Cliente,Dias,Vendedor,>60,30-60,<30,Tot")
+        ];
+
+        return $data;
     }
 }
