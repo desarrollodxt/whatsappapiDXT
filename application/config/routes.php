@@ -26,6 +26,9 @@ $route["metricas/(:any)/(:any)/(:any)"] = "Dashboard/metricas/$1/$2/$3";
 $route["indicadoresPlanner/(:any)"] = "Indicadores/getIndicadoresPlanner/$1";
 $route["detalleMetrica/(:any)/(:any)"] = "Indicadores/detalleMetrica/$1/$2";
 
+$route["indicadoresAgentecuentas/(:any)"] = "Indicadores/getIndicadoresAgentecuentas/$1";
+// $route["detalleMetrica/(:any)/(:any)"] = "Indicadores/detalleMetrica/$1/$2";
+
 $route["solicitarCostos"] = "Cotizaciones/solicitarCostos";
 $route["solicitarCostosToggle"] = "Cotizaciones/solicitarCostosToggle";
 $route["altaCotizacion"] = "Cotizaciones/altaCotizacion";
