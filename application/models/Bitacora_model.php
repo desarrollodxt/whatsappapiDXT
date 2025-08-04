@@ -131,20 +131,24 @@ class Bitacora_model extends CI_Model
         `a`.`cd_origen` `origen`, `a`.`cd_destino` `destino`, CONCAT('caja: <b>', `a`.`placas_remolque`, '</b> <br />', 'Tracto:
         <b>', `a`.`placas_tracto`, '</b>') unidad, left(a.cliente_nombre_corto, 12) cliente, `a`.`cliente_solicitud`,
         `a`.`orig_dest_solicitud`, `a`.`user_add_cv` `planner`, `bl`.*,
-        CONVERT_TZ(bl.created_at,'+00:00','-06:00') fecha_act, e.id id_entidad
+        CONVERT_TZ(bl.created_at,'+00:00','-06:00') fecha_act, e.id id_entidad, a.id_cliente
         FROM bitacora_ln bl inner join (SELECT max(bl.id) last_move from bitacora_ln bl group by bl.id_bitacora_hd) as lbl on bl.id = lbl.last_move
         inner join bitacora_hd bh on bl.id_bitacora_hd = bh.id
         inner join api a on a.cv = bh.cv 
         left join entidades e on e.id_rainder = a.id_cliente and e.tipo_entidad = 1
-        where bl.estatus in (1,2,3,4,5,6,7,8,9,10) AND `a`.`fecha_descarga_cv` > DATE_SUB(now(), INTERVAL 10 day)";
+        where bl.estatus in (1,2,3,4,5,6,7,8,9,10) AND `a`.`fecha_descarga_cv` > DATE_SUB(now(), INTERVAL 16 day)";
 
         if (validarRol($rolesUsuario, ["Agente de cuenta"])) {
-            $sql .= " AND e.id_sac = '$usuarioID' ";
+            $sql .= " AND e.id_sac = " . intval($usuarioID);
         } else if (validarRol($rolesUsuario, ["Monitoreo", "Admin"])) {
             $sql .= "";
+            if($usuarioID == 61){
+                $sql .= " AND a.id_cliente = 4537";
+            }
         } else {
             $sql .= " AND 1=0";
-        }
+        } 
+        
 
         $sql .= " ORDER BY a.fecha_carga_ci ASC";
 
@@ -227,7 +231,7 @@ class Bitacora_model extends CI_Model
                 GROUP BY id_bitacora_hd
                 ) AS max_fecha
                  ON bln.id_bitacora_hd = max_fecha.id_bitacora_hd AND bln.created_at = max_fecha.ultima_fecha
-                 where estatus in (1,2,3,4,5,6,7,9)) bl on bl.id_bitacora_hd = bh.id $condicion ORDER BY bh.fecha_carga ASC";
+                 where estatus in (1,2,3,4,5,6,7,9,10)) bl on bl.id_bitacora_hd = bh.id $condicion ORDER BY bh.fecha_carga ASC";
 
         $query = $this->db->query($sql);
         $bitacora = $query->result_array();

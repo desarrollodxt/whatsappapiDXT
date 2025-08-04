@@ -130,6 +130,12 @@ class Whatsapp extends CI_Controller
     public function recibirMensaje()
     {
         ob_clean();
+        if($this->body["from"] == '5218182594201@c.us'){
+            if($this->body["content"] == 'Reporte DXT'){
+                $this->responder(false, "Generar Reporte", null, 200);
+            }
+
+        }
         $this->Whatsapp_model->salvarMensajeRecibido($this->body);
         $array = [];
         $this->responder(false, "",  $array);

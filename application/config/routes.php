@@ -26,9 +26,6 @@ $route["metricas/(:any)/(:any)/(:any)"] = "Dashboard/metricas/$1/$2/$3";
 $route["indicadoresPlanner/(:any)"] = "Indicadores/getIndicadoresPlanner/$1";
 $route["detalleMetrica/(:any)/(:any)"] = "Indicadores/detalleMetrica/$1/$2";
 
-$route["indicadoresAgentecuentas/(:any)"] = "Indicadores/getIndicadoresAgentecuentas/$1";
-// $route["detalleMetrica/(:any)/(:any)"] = "Indicadores/detalleMetrica/$1/$2";
-
 $route["solicitarCostos"] = "Cotizaciones/solicitarCostos";
 $route["solicitarCostosToggle"] = "Cotizaciones/solicitarCostosToggle";
 $route["altaCotizacion"] = "Cotizaciones/altaCotizacion";
@@ -50,6 +47,8 @@ $route["guardarAltacliente"] = "CRM/guardarAltacliente";
 $route["altaEntidadRh"] = "CRM/altaEntidadRh";
 
 $route["altaGrupoContacto"] = "Proveedor/altaGrupoContacto";
+$route["capturaFacturaFactoraje"] = "FacturasController/capturaFacturaFactoraje";
+$route["capturarPagoFactura"] = "FacturasController/capturarPagoFactura";
 
 // -leads
 $route["getEntidades"] = "CRM/getEntidades";
@@ -90,3 +89,6 @@ $route["setVendedor"] = "OneOperacion/setVendedor";
 
 
 $route["generarToken"] = "CRM/generarToken";
+
+$route['trailersGetState'] = 'Trailers/obtener_estado_trailers';
+$route["determinarEstatusTractor"] = "Tractores/determinarEstatusTractor";
