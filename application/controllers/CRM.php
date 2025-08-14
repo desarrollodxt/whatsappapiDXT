@@ -1004,4 +1004,22 @@ class CRM extends CI_Controller
             $this->responder(true, "Error al actualizar la foto de perfil", ["backtrace" => $th->getMessage()], 400);
         }
     }
+
+
+    public function getVentasCRM(){
+ 
+
+        //leer json de peticion
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+        //fecha inicio y fecha fin
+        $fecha_inicio = $data["fecha_inicio"];
+        $fecha_fin = $data["fecha_fin"];
+        //obtener ventas
+        $this->load->model("Cv_model");
+        $ventas = $this->Cv_model->getVentasCRM($fecha_inicio, $fecha_fin);
+
+        $this->responder(false, "Ventas obtenidas correctamente", $ventas, 200);
+        
+    }
 }

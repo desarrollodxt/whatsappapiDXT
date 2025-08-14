@@ -92,3 +92,5 @@ $route["generarToken"] = "CRM/generarToken";
 
 $route['trailersGetState'] = 'Trailers/obtener_estado_trailers';
 $route["determinarEstatusTractor"] = "Tractores/determinarEstatusTractor";
+
+$route["getVentasCRM"] = "CRM/getVentasCRM";
