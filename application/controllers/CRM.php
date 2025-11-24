@@ -1008,13 +1008,12 @@ class CRM extends CI_Controller
 
     public function getVentasCRM(){
  
-
-        //leer json de peticion
-        $json = file_get_contents('php://input');
-        $data = json_decode($json, true);
+        if(!isset($this->body["fecha_inicio"]) || !isset($this->body["fecha_fin"])){
+            $this->responder(true, "Faltan datos", null, 400);
+        }
         //fecha inicio y fecha fin
-        $fecha_inicio = $data["fecha_inicio"];
-        $fecha_fin = $data["fecha_fin"];
+        $fecha_inicio = $this->body["fecha_inicio"];
+        $fecha_fin = $this->body["fecha_fin"];
         //obtener ventas
         $this->load->model("Cv_model");
         $ventas = $this->Cv_model->getVentasCRM($fecha_inicio, $fecha_fin);

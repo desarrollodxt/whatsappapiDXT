@@ -128,8 +128,8 @@ class Bitacora_model extends CI_Model
         DATE_FORMAT(bh.fecha_llegada, '%Y-%m%-%d %H:%i') fecha_llegada, DATE_FORMAT(bh.fecha_descarga_real, '%Y-%m%-%d %H:%i')
         fecha_descarga_real, DATE_FORMAT(bh.fecha_carga_real, '%Y-%m%-%d %H:%i') fecha_carga_real, `bh`.`ultimo_estatus`,
         DATE_FORMAT(bh.created_at, '%Y-%m-%d %H:%i') created_at, DATE_FORMAT(bh.salida_ruta, '%Y-%m-%d %H:%i') salida_ruta,
-        `a`.`cd_origen` `origen`, `a`.`cd_destino` `destino`, CONCAT('caja: <b>', `a`.`placas_remolque`, '</b> <br />', 'Tracto:
-        <b>', `a`.`placas_tracto`, '</b>') unidad, left(a.cliente_nombre_corto, 12) cliente, `a`.`cliente_solicitud`,
+        `a`.`cd_origen` `origen`, `a`.`cd_destino` `destino`, CONCAT('Caja No.Eco: <b>', `a`.`remolque`,'</b><br>Placa caja: <b>', `a`.`placas_remolque`, '</b> <br />', 'Tracto No.Eco: <b>', `a`.`tracto`, '</b><br>Placa tracto: <b>', `a`.`placas_tracto`, '</b>') unidad,
+         left(a.cliente_nombre_corto, 12) cliente, `a`.`cliente_solicitud`,
         `a`.`orig_dest_solicitud`, `a`.`user_add_cv` `planner`, `bl`.*,
         CONVERT_TZ(bl.created_at,'+00:00','-06:00') fecha_act, e.id id_entidad, a.id_cliente
         FROM bitacora_ln bl inner join (SELECT max(bl.id) last_move from bitacora_ln bl group by bl.id_bitacora_hd) as lbl on bl.id = lbl.last_move
