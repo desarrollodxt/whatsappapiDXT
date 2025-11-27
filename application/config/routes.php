@@ -94,3 +94,10 @@ $route['trailersGetState'] = 'Trailers/obtener_estado_trailers';
 $route["determinarEstatusTractor"] = "Tractores/determinarEstatusTractor";
 
 $route["getVentasCRM"] = "CRM/getVentasCRM";
+
+
+//implemetacion con sistema daniela
+
+$route["getVentas"] = "Indicadores/getVentas";
+$route["getCartera"] = "Indicadores/getCartera";
+$route["getCuentasXPagar"] = "Indicadores/getCuentasXPagar";

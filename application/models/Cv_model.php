@@ -21,6 +21,200 @@ class Cv_model extends CI_Model
         return $query->result_array();
     }
 
+    public function getVentas($fecha_inicio, $fecha_fin, $unidadNegocio = null)
+    {
+        $condicionUnidadNegocio = "";
+        //Unidad de negocio se determina con el usuario que hizo el cv user_add_cv
+        // si es nsalinas == D2D
+        // si es aperez = PUERTOS
+        // cualquier otro es nacional
+        // if is null, then get all
+        if ($unidadNegocio == null) {
+            $condicionUnidadNegocio = "";
+        } else {
+            if ($unidadNegocio == "D2D") {
+                $condicionUnidadNegocio = "AND cv.user_add_cv = 'nsalinas'";
+            } else if ($unidadNegocio == "PUERTOS") {
+                $condicionUnidadNegocio = "AND cv.user_add_cv = 'aperez'";
+            } else {
+                $condicionUnidadNegocio = "AND cv.user_add_cv != 'nsalinas' AND cv.user_add_cv != 'aperez'";
+            }
+        }
+        // get all cvs with the condition
+
+        $sql = "SELECT 
+                    cv.id_cliente,
+                    cv.user_add_cv,
+                    cv.user_autoriza,
+                    cv.user_add,
+                    case when cv.user_add_cv = 'nsalinas' then 'D2D' when cv.user_add_cv = 'aperez' then 'PUERTOS' else 'NACIONAL' end as unidad_negocio,
+                    cv.cliente_nombre_corto,
+                    cv.transportista_nombre_comercial,
+                    cv.id_transportista,
+                    cv.orig_dest_cv,
+                    cv.orig_dest_loc_cv,
+                    cv.fecha_carga_ci,
+                    cv.fecha_descarga_cv,
+                    cv.fecha_cobro_dxt,
+                    cv.fecha_pago_prov,
+                    cv.vta_total_autorizada,
+                    cv.saldo_x_cobrar,
+                    cv.costo_total_autorizada,
+                    cv.saldo_x_pagar,
+                    cv.moneda,
+                    cv.tipo_de_cambio,
+                    cv.utilidad,
+                    cv.porcentaje,
+                    cv.cv,
+                    cv.referencia_cliente
+                FROM api cv 
+                WHERE cv.fecha_carga_ci BETWEEN ? AND ? AND cv.estatus_cv = 'ACTIVO' $condicionUnidadNegocio";
+
+        $query = $this->db->query($sql, array($fecha_inicio, $fecha_fin));
+        $results = $query->result_array();
+
+        return $results;
+    }
+
+
+
+    /**
+     * Summary of getCartera
+     * @param mixed $fecha_inicio -1 para toda la cartera sin rango de fecha
+     * @param mixed $fecha_fin
+     * @param mixed $unidadNegocio
+     */
+    public function getCartera($fecha_inicio, $fecha_fin, $unidadNegocio = null)
+    {
+        $condicionUnidadNegocio = "";
+        //Unidad de negocio se determina con el usuario que hizo el cv user_add_cv
+        // si es nsalinas == D2D
+        // si es aperez = PUERTOS
+        // cualquier otro es nacional
+        // if is null, then get all
+        if ($unidadNegocio == null) {
+            $condicionUnidadNegocio = "";
+        } else {
+            if ($unidadNegocio == "D2D") {
+                $condicionUnidadNegocio = "AND cv.user_add_cv = 'nsalinas'";
+            } else if ($unidadNegocio == "PUERTOS") {
+                $condicionUnidadNegocio = "AND cv.user_add_cv = 'aperez'";
+            } else {
+                $condicionUnidadNegocio = "AND cv.user_add_cv != 'nsalinas' AND cv.user_add_cv != 'aperez'";
+            }
+        }
+
+        if ($fecha_inicio !== '-1') {
+            $condicionFecha = "AND cv.fecha_carga_ci BETWEEN ? AND ?";
+            $params = array($fecha_inicio, $fecha_fin);
+        } else {
+            $condicionFecha = "";
+            $params = array();
+        }
+
+        $sql = "SELECT 
+                    cv.id_cliente,
+                    cv.user_add_cv,
+                    cv.user_autoriza,
+                    cv.user_add,
+                    case when cv.user_add_cv = 'nsalinas' then 'D2D' when cv.user_add_cv = 'aperez' then 'PUERTOS' else 'NACIONAL' end as unidad_negocio,
+                    cv.cliente_nombre_corto,
+                    cv.transportista_nombre_comercial,
+                    cv.id_transportista,
+                    cv.orig_dest_cv,
+                    cv.orig_dest_loc_cv,
+                    cv.fecha_carga_ci,
+                    cv.fecha_descarga_cv,
+                    cv.fecha_cobro_dxt,
+                    cv.fecha_pago_prov,
+                    cv.vta_total_autorizada,
+                    cv.saldo_x_cobrar,
+                    cv.costo_total_autorizada,
+                    cv.saldo_x_pagar,
+                    cv.moneda,
+                    cv.tipo_de_cambio,
+                    cv.utilidad,
+                    cv.porcentaje,
+                    cv.cv,
+                    cv.referencia_cliente
+                FROM api cv 
+                WHERE cv.estatus_cv = 'ACTIVO' AND saldo_x_cobrar > 0 $condicionUnidadNegocio $condicionFecha";
+
+        $query = $this->db->query($sql, $params);
+        $results = $query->result_array();
+
+        return $results;
+    }
+
+
+    
+    /**
+     * Summary of getCartera
+     * @param mixed $fecha_inicio -1 para toda la cartera sin rango de fecha
+     * @param mixed $fecha_fin
+     * @param mixed $unidadNegocio
+     */
+    public function getCuentasXPagar($fecha_inicio, $fecha_fin, $unidadNegocio = null)
+    {
+        $condicionUnidadNegocio = "";
+        //Unidad de negocio se determina con el usuario que hizo el cv user_add_cv
+        // si es nsalinas == D2D
+        // si es aperez = PUERTOS
+        // cualquier otro es nacional
+        // if is null, then get all
+        if ($unidadNegocio == null) {
+            $condicionUnidadNegocio = "";
+        } else {
+            if ($unidadNegocio == "D2D") {
+                $condicionUnidadNegocio = "AND cv.user_add_cv = 'nsalinas'";
+            } else if ($unidadNegocio == "PUERTOS") {
+                $condicionUnidadNegocio = "AND cv.user_add_cv = 'aperez'";
+            } else {
+                $condicionUnidadNegocio = "AND cv.user_add_cv != 'nsalinas' AND cv.user_add_cv != 'aperez'";
+            }
+        }
+
+        if ($fecha_inicio !== '-1') {
+            $condicionFecha = "AND cv.fecha_carga_ci BETWEEN ? AND ?";
+            $params = array($fecha_inicio, $fecha_fin);
+        } else {
+            $condicionFecha = "";
+            $params = array();
+        }
+
+        $sql = "SELECT 
+                    cv.id_cliente,
+                    cv.user_add_cv,
+                    cv.user_autoriza,
+                    cv.user_add,
+                    case when cv.user_add_cv = 'nsalinas' then 'D2D' when cv.user_add_cv = 'aperez' then 'PUERTOS' else 'NACIONAL' end as unidad_negocio,
+                    cv.cliente_nombre_corto,
+                    cv.transportista_nombre_comercial,
+                    cv.id_transportista,
+                    cv.orig_dest_cv,
+                    cv.orig_dest_loc_cv,
+                    cv.fecha_carga_ci,
+                    cv.fecha_descarga_cv,
+                    cv.fecha_cobro_dxt,
+                    cv.fecha_pago_prov,
+                    cv.vta_total_autorizada,
+                    cv.saldo_x_cobrar,
+                    cv.costo_total_autorizada,
+                    cv.saldo_x_pagar,
+                    cv.moneda,
+                    cv.tipo_de_cambio,
+                    cv.utilidad,
+                    cv.porcentaje,
+                    cv.cv,
+                    cv.referencia_cliente
+                FROM api cv 
+                WHERE cv.estatus_cv = 'ACTIVO' AND saldo_x_pagar > 0 $condicionUnidadNegocio $condicionFecha";
+
+        $query = $this->db->query($sql, $params);
+        $results = $query->result_array();
+
+        return $results;
+    }
 
     public function getVentasCRM($fecha_inicio, $fecha_fin)
     {
