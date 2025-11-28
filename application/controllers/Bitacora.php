@@ -306,27 +306,27 @@ class Bitacora extends CI_Controller
         $cv = $datos["cv"];
         
         $evidencias = [];
-        // for ($i = 0; $i < count($_FILES["evidencia"]["name"]); $i++) {
-        //     $evidencias[] = [
-        //         "name" => $_FILES["evidencia"]["name"][$i],
-        //         "type" => $_FILES["evidencia"]["type"][$i],
-        //         "tmp_name" => $_FILES["evidencia"]["tmp_name"][$i],
-        //         "error" => $_FILES["evidencia"]["error"][$i],
-        //         "size" => $_FILES["evidencia"]["size"][$i],
-        //     ];
-        // }
+         for ($i = 0; $i < count($_FILES["evidencia"]["name"]); $i++) {
+             $evidencias[] = [
+                 "name" => $_FILES["evidencia"]["name"][$i],
+                 "type" => $_FILES["evidencia"]["type"][$i],
+                 "tmp_name" => $_FILES["evidencia"]["tmp_name"][$i],
+                 "error" => $_FILES["evidencia"]["error"][$i],
+                 "size" => $_FILES["evidencia"]["size"][$i],
+             ];
+         }
 
         $ultimoStatus = $this->Bitacora_model->getUltimoStatusCv($cv);
         
         if ($ultimoStatus["estatus_nombre"] == "Descargada") {
             $this->load->helper('uploadfile_helper');
             
-            // if ($evidencias[0]["name"] != "") {
-            //     foreach ($evidencias as $evidencia) {
-            //         $nombre_archivo = $this->carga_achivo($evidencia, "/home/u613393165/domains/gcsmatrix.com/public_html/dxt/vista/bitacora/", '');
-            //         $this->Bitacora_model->setEvidencia($nombre_archivo["nombre_archivo"], $nombre_archivo["extension"], "/vista/bitacora/", "evidencia_movimiento", null, $ultimoStatus["id"]);
-            //     }
-            // }
+             if ($evidencias[0]["name"] != "") {
+                 foreach ($evidencias as $evidencia) {
+                     $nombre_archivo = $this->carga_achivo($evidencia, "/home/u613393165/domains/gcsmatrix.com/public_html/dxt/vista/bitacora/", '');
+                     $this->Bitacora_model->setEvidencia($nombre_archivo["nombre_archivo"], $nombre_archivo["extension"], "/vista/bitacora/", "evidencia_movimiento", null, $ultimoStatus["id"]);
+                 }
+             }
             
             $this->responder(false, "Evidencia agregada",  null, 200);
         }
@@ -344,12 +344,12 @@ class Bitacora extends CI_Controller
         $id_ln = $this->Bitacora_model->setMovimientoNuevo($cv, $usuario, $statusID, $observaciones, $coordenadas, $ubicacion, $fechaHoraMovimiento);
         $this->load->helper('uploadfile_helper');
 
-        // if ($evidencias[0]["name"] != "") {
-        //     foreach ($evidencias as $evidencia) {
-        //         $nombre_archivo = $this->carga_achivo($evidencia, "/home/u613393165/domains/gcsmatrix.com/public_html/dxt/vista/bitacora/", '');
-        //         $this->Bitacora_model->setEvidencia($nombre_archivo["nombre_archivo"], $nombre_archivo["extension"], "/vista/bitacora/", "evidencia_movimiento", null, $id_ln);
-        //     }
-        // }
+        if ($evidencias[0]["name"] != "") {
+            foreach ($evidencias as $evidencia) {
+                $nombre_archivo = $this->carga_achivo($evidencia, "/home/u613393165/domains/gcsmatrix.com/public_html/dxt/vista/bitacora/", '');
+                $this->Bitacora_model->setEvidencia($nombre_archivo["nombre_archivo"], $nombre_archivo["extension"], "/vista/bitacora/", "evidencia_movimiento", null, $id_ln);
+            }
+        }
 
         if (isset($_FILES["capturagps"]) && $_FILES["capturagps"]["name"] != "") {
             $nombre_archivo = $this->carga_achivo($_FILES["capturagps"], "/home/u613393165/domains/gcsmatrix.com/public_html/dxt/vista/bitacora/", '');
