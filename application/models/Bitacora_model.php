@@ -253,4 +253,19 @@ class Bitacora_model extends CI_Model
         $bitacora = $query->result_array();
         return $bitacora;
     }
+
+    public function getUltimoStatusCv($cv)
+    {
+        $sql = "SELECT bln.* 
+                FROM bitacora_ln bln 
+                INNER JOIN bitacora_hd bhd ON bhd.id = bln.id_bitacora_hd 
+                WHERE bhd.cv = ? 
+                ORDER BY bln.created_at DESC 
+                LIMIT 1";
+        
+        $query = $this->db->query($sql, [$cv]);
+        $ultimo_movimiento = $query->row_array();
+        
+        return $ultimo_movimiento;
+    }
 }

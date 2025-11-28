@@ -101,3 +101,6 @@ $route["getVentasCRM"] = "CRM/getVentasCRM";
 $route["getVentas"] = "Indicadores/getVentas";
 $route["getCartera"] = "Indicadores/getCartera";
 $route["getCuentasXPagar"] = "Indicadores/getCuentasXPagar";
+
+
+$route["entregaEvidenciaAgent"] = "Bitacora/EntregaEvidenciaAgent";
